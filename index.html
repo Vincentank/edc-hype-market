@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EDC LV 2026 · Hype Market (Live)</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+  :root{
+    --bg:#05020f; --bg2:#0a0520;
+    --ink:#f5f0ff; --ink2:#a99dc8;
+    --neon:#ff2bd6; --neon2:#00e5ff; --neon3:#9d4bff;
+    --gain:#36ff8b; --loss:#ff3860;
+    --card:rgba(22,10,48,0.72); --card2:rgba(36,16,70,0.85);
+    --border:rgba(255,43,214,0.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 0%, rgba(157,75,255,0.35), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 80% 10%, rgba(255,43,214,0.30), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(0,229,255,0.25), transparent 60%),
+      linear-gradient(180deg, #05020f 0%, #0a0520 50%, #05020f 100%);
+    background-attachment: fixed;
+    min-height:100vh; overflow-x:hidden; letter-spacing:0.2px;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(255,43,214,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 30%, #000 30%, transparent 80%);
+  }
+  .scan{position:fixed; inset:0; pointer-events:none; z-index:1;
+    background:repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0 2px, transparent 2px 4px);
+    mix-blend-mode:overlay;}
+
+  /* ticker */
+  .ticker-wrap{position:relative; z-index:3;
+    background:linear-gradient(90deg, rgba(255,43,214,0.15), rgba(0,229,255,0.15));
+    border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    overflow:hidden; backdrop-filter: blur(8px);}
+  .ticker{display:flex; gap:40px; white-space:nowrap; padding:10px 0;
+    animation: tick 120s linear infinite;
+    font-family:'SF Mono',Menlo,monospace; font-size:13px;}
+  .ticker span{color:var(--ink2)}
+  .ticker .up{color:var(--gain); text-shadow:0 0 8px rgba(54,255,139,0.6)}
+  .ticker .down{color:var(--loss); text-shadow:0 0 8px rgba(255,56,96,0.6)}
+  .ticker b{color:var(--ink); font-weight:700; margin-right:6px}
+  @keyframes tick{from{transform:translateX(0)} to{transform:translateX(-50%)}}
+
+  /* header */
+  header{position:relative; z-index:3; padding:26px 36px 10px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;}
+  .brand{display:flex; align-items:center; gap:14px}
+  .brand-logo{width:52px; height:52px; border-radius:14px;
+    background:conic-gradient(from 120deg, var(--neon), var(--neon3), var(--neon2), var(--neon));
+    box-shadow:0 0 30px rgba(255,43,214,0.55), inset 0 0 10px rgba(0,0,0,0.4);
+    position:relative; overflow:hidden;}
+  .brand-logo::after{content:"EDC"; position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:15px; letter-spacing:1px; color:#fff;
+    text-shadow:0 0 6px rgba(0,0,0,0.7);}
+  .brand h1{font-size:22px; font-weight:800; letter-spacing:2px;
+    background:linear-gradient(90deg, #fff, var(--neon), var(--neon2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .brand small{color:var(--ink2); font-size:11px; letter-spacing:3px; text-transform:uppercase}
+  .live-pill{display:inline-flex; align-items:center; gap:8px;
+    padding:6px 12px; border-radius:999px;
+    background:rgba(54,255,139,0.12); border:1px solid rgba(54,255,139,0.5);
+    color:var(--gain); font-size:12px; font-weight:700; letter-spacing:1.5px;}
+  .live-pill .dot{width:8px; height:8px; border-radius:50%;
+    background:var(--gain); box-shadow:0 0 10px var(--gain);
+    animation: pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)}}
+
+  .cta{background:linear-gradient(135deg, var(--neon), var(--neon3));
+    border:none; color:#fff; padding:14px 24px; border-radius:12px;
+    font-weight:800; letter-spacing:1.5px; cursor:pointer; font-size:13px;
+    box-shadow:0 0 20px rgba(255,43,214,0.6), 0 0 40px rgba(255,43,214,0.3);
+    transition:transform .15s, box-shadow .2s; text-transform:uppercase;}
+  .cta:hover{transform:translateY(-2px); box-shadow:0 0 30px rgba(255,43,214,0.85), 0 0 60px rgba(255,43,214,0.5)}
+  .cta:active{transform:translateY(0)}
+  .cta.cyan{background:linear-gradient(135deg, var(--neon2), var(--neon3));
+    box-shadow:0 0 20px rgba(0,229,255,0.6), 0 0 40px rgba(0,229,255,0.3);}
+
+  .hero{position:relative; z-index:3; padding: 20px 36px 30px;
+    display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap:16px;}
+  .stat{background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:16px 18px; backdrop-filter: blur(10px); position:relative; overflow:hidden;}
+  .stat::before{content:""; position:absolute; inset:0;
+    background:linear-gradient(135deg, transparent 40%, rgba(255,43,214,0.08) 100%);
+    pointer-events:none;}
+  .stat .k{font-size:11px; letter-spacing:2px; color:var(--ink2); text-transform:uppercase}
+  .stat .v{font-size:28px; font-weight:800; margin-top:6px;
+    background:linear-gradient(90deg, #fff, var(--neon2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .stat.big .v{font-size:22px}
+  .stat.big .sub{font-size:12px; color:var(--ink2); margin-top:4px}
+
+  main{position:relative; z-index:3; padding: 10px 36px 60px;
+    display:grid; grid-template-columns: 1fr 340px; gap:20px;}
+  @media (max-width: 1100px){main{grid-template-columns:1fr} .hero{grid-template-columns:1fr 1fr}}
+  @media (max-width: 640px){.hero{grid-template-columns:1fr} header{padding:18px} main{padding:10px 14px 60px}}
+
+  .section-title{display:flex; align-items:center; justify-content:space-between; margin: 8px 0 14px; flex-wrap:wrap; gap:8px}
+  .section-title h2{font-size:13px; letter-spacing:3px; color:var(--ink2); text-transform:uppercase; font-weight:700}
+  .section-title .hint{font-size:11px; color:var(--ink2)}
+
+  /* filter chips */
+  #filters{display:flex; flex-direction:column; gap:8px; margin-bottom:14px}
+  .filter-row{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  .filter-row .lbl{font-size:10px; letter-spacing:2px; color:var(--ink2);
+    text-transform:uppercase; font-weight:700; margin-right:6px; min-width:48px;}
+  .fchip{padding:5px 11px; border-radius:999px; cursor:pointer; font-size:11px;
+    font-weight:700; letter-spacing:1px; text-transform:uppercase;
+    background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--ink2);
+    transition:all .15s;}
+  .fchip:hover{color:var(--ink); border-color:var(--neon)}
+  .fchip.active{background:linear-gradient(135deg, var(--neon), var(--neon3));
+    color:#fff; border-color:var(--neon); box-shadow:0 0 12px rgba(255,43,214,0.5);}
+  .fchip.day-fri.active{background:linear-gradient(135deg, #ff2bd6, #ff6bb5)}
+  .fchip.day-sat.active{background:linear-gradient(135deg, #9d4bff, #6b2bff)}
+  .fchip.day-sun.active{background:linear-gradient(135deg, #00e5ff, #00b4d8)}
+
+  .scope-banner{display:flex; align-items:center; justify-content:space-between;
+    background:rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.35); color:var(--neon2);
+    padding:8px 12px; border-radius:10px; font-size:12px; letter-spacing:1px; margin-bottom:12px;}
+  .scope-banner b{font-weight:800; margin-left:6px; color:#fff}
+
+  /* DJ cards */
+  .grid{display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:14px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:14px 14px 12px; position:relative; overflow:hidden; cursor:pointer;
+    transition: transform .15s, border-color .2s, box-shadow .2s;
+    backdrop-filter: blur(10px);}
+  .card:hover{transform:translateY(-3px); border-color:var(--neon);
+    box-shadow:0 0 20px rgba(255,43,214,0.4);}
+  .card .rank{position:absolute; top:10px; right:12px; font-size:10px;
+    color:var(--ink2); letter-spacing:1.5px; font-weight:700;}
+  .card.in-ballot{border-color:var(--gain); box-shadow:0 0 14px rgba(54,255,139,0.3)}
+  .card .name{font-size:18px; font-weight:800; margin-bottom:2px;
+    display:flex; align-items:center; gap:6px;}
+  .card .genre{font-size:11px; color:var(--ink2); letter-spacing:1px; text-transform:uppercase; margin-bottom:12px}
+  .card .pct-row{display:flex; align-items:baseline; gap:10px;}
+  .pct{font-size:32px; font-weight:900; line-height:1;
+    background:linear-gradient(90deg, var(--neon2), var(--neon));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-variant-numeric: tabular-nums;}
+  .chg{font-size:13px; font-weight:700; padding:3px 8px; border-radius:6px; font-variant-numeric: tabular-nums;}
+  .chg.up{background:rgba(54,255,139,0.12); color:var(--gain)}
+  .chg.down{background:rgba(255,56,96,0.12); color:var(--loss)}
+  .chg.flat{background:rgba(169,157,200,0.12); color:var(--ink2)}
+  .spark{width:100%; height:44px; margin-top:10px}
+  .bar{height:4px; border-radius:2px; background:rgba(255,255,255,0.08); margin-top:10px; overflow:hidden;}
+  .bar > i{display:block; height:100%;
+    background:linear-gradient(90deg, var(--neon3), var(--neon), var(--neon2));
+    box-shadow: 0 0 12px var(--neon); transition: width .8s cubic-bezier(.2,.8,.2,1);}
+  .tag-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+  .tag{font-size:9px; letter-spacing:1.2px; text-transform:uppercase; font-weight:700;
+    padding:3px 7px; border-radius:4px;
+    background:rgba(255,255,255,0.06); color:var(--ink2); border:1px solid rgba(255,255,255,0.08);}
+  .tag.day-FRIDAY{background:rgba(255,43,214,0.15); color:#ff6bb5; border-color:rgba(255,43,214,0.3)}
+  .tag.day-SATURDAY{background:rgba(157,75,255,0.15); color:#b58bff; border-color:rgba(157,75,255,0.3)}
+  .tag.day-SUNDAY{background:rgba(0,229,255,0.15); color:#5feaff; border-color:rgba(0,229,255,0.3)}
+  .tag.stage{background:rgba(54,255,139,0.08); color:#7cffbb; border-color:rgba(54,255,139,0.2)}
+  .tag.ballot{background:var(--gain); color:#000; border-color:var(--gain); font-weight:800}
+
+  /* sidebar panels */
+  aside{display:flex; flex-direction:column; gap:20px;}
+  .panel{background:var(--card); border:1px solid var(--border); border-radius:16px;
+    padding:16px; backdrop-filter: blur(10px);}
+  .lb-row{display:grid; grid-template-columns: 24px 1fr auto auto; gap:10px; align-items:center;
+    padding:8px 6px; border-radius:10px; font-size:13px;}
+  .lb-row:hover{background:rgba(255,43,214,0.08)}
+  .lb-row .r{color:var(--ink2); font-weight:700; text-align:center; font-variant-numeric:tabular-nums}
+  .lb-row.gold .r{color:#ffd04b; text-shadow:0 0 8px rgba(255,208,75,0.6)}
+  .lb-row.silver .r{color:#d8dde6}
+  .lb-row.bronze .r{color:#e59a5d}
+  .lb-row .n{font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .lb-row .p{font-weight:800; color:var(--neon2); font-variant-numeric:tabular-nums}
+  .lb-row .c{font-size:11px; font-variant-numeric:tabular-nums}
+  .c.up{color:var(--gain)} .c.down{color:var(--loss)} .c.flat{color:var(--ink2)}
+
+  /* modal */
+  .modal{position:fixed; inset:0; z-index:100; background:rgba(5,2,15,0.85);
+    backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px;}
+  .modal.show{display:flex}
+  .modal-box{background:linear-gradient(180deg, var(--card2), var(--card));
+    border:1px solid var(--neon); border-radius:20px; max-width:900px; width:100%;
+    max-height:90vh; overflow:auto; box-shadow:0 0 60px rgba(255,43,214,0.5);
+    padding:24px; position:relative;}
+  .modal-box h3{font-size:20px; letter-spacing:2px; text-transform:uppercase;
+    background:linear-gradient(90deg, var(--neon2), var(--neon));
+    -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:900;}
+  .modal-close{position:absolute; top:14px; right:14px; background:transparent;
+    border:1px solid var(--border); color:var(--ink);
+    width:36px; height:36px; border-radius:10px; cursor:pointer; font-size:18px;}
+  .modal-close:hover{border-color:var(--neon); color:var(--neon)}
+
+  .ballot-help{color:var(--ink2); font-size:12px; margin-top:6px; margin-bottom:18px; line-height:1.6}
+  .ballot-help code{color:var(--neon2); background:rgba(0,229,255,0.08); padding:1px 6px; border-radius:4px}
+
+  .ballot-cols{display:grid; grid-template-columns: 1fr 1fr; gap:16px}
+  @media (max-width:720px){.ballot-cols{grid-template-columns:1fr}}
+  .ballot-col{background:rgba(0,0,0,0.25); border:1px solid var(--border);
+    border-radius:12px; padding:12px; min-height:220px;}
+  .ballot-col h4{font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--ink2);
+    margin-bottom:10px; display:flex; justify-content:space-between}
+  .ballot-col.top5 h4 span:first-child{color:var(--neon)}
+  .ballot-col.top10 h4 span:first-child{color:var(--neon2)}
+  .slot{display:flex; align-items:center; gap:8px; padding:8px 10px; margin-bottom:6px;
+    background:rgba(255,255,255,0.04); border:1px dashed rgba(255,43,214,0.3);
+    border-radius:8px; font-size:13px; min-height:36px;}
+  .slot.filled{border-style:solid; border-color:var(--border); background:rgba(255,43,214,0.08)}
+  .slot .sr{width:22px; text-align:center; color:var(--ink2); font-weight:800; font-variant-numeric:tabular-nums}
+  .slot .sn{flex:1; font-weight:700}
+  .slot button{background:transparent; border:1px solid var(--border); color:var(--ink2);
+    width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:12px;}
+  .slot button:hover{color:var(--loss); border-color:var(--loss)}
+
+  .picker{margin-top:18px; background:rgba(0,0,0,0.25); border:1px solid var(--border);
+    border-radius:12px; padding:12px;}
+  .picker h4{font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--ink2);
+    margin-bottom:10px; display:flex; justify-content:space-between; gap:10px}
+  .search{flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border); color:var(--ink);
+    padding:8px 12px; border-radius:8px; font-size:13px; outline:none; max-width:260px;}
+  .search:focus{border-color:var(--neon); box-shadow:0 0 12px rgba(255,43,214,0.3)}
+  .chips{display:flex; flex-wrap:wrap; gap:6px; max-height:180px; overflow:auto; padding-right:4px}
+  .chip{padding:7px 11px; border-radius:999px;
+    background:rgba(255,255,255,0.05); border:1px solid var(--border);
+    cursor:pointer; font-size:12px; font-weight:700; transition:all .15s;}
+  .chip:hover{background:var(--neon); color:#000; border-color:var(--neon)}
+  .chip.used{opacity:0.35; cursor:not-allowed; text-decoration:line-through}
+  .chip .cday{font-size:9px; opacity:0.7; margin-left:4px; letter-spacing:0.5px}
+
+  .add-dj{display:flex; gap:8px; margin-top:10px}
+  .add-dj input{flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border); color:var(--ink);
+    padding:8px 12px; border-radius:8px; font-size:13px; outline:none;}
+  .add-dj input:focus{border-color:var(--neon)}
+  .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--ink);
+    padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:700; letter-spacing:1px;}
+  .btn-ghost:hover{border-color:var(--neon2); color:var(--neon2)}
+  .btn-ghost.disabled{opacity:0.4; cursor:not-allowed}
+
+  .ballot-actions{display:flex; justify-content:space-between; align-items:center; gap:12px;
+    margin-top:18px; padding-top:14px; border-top:1px solid var(--border); flex-wrap:wrap}
+  .ballot-status{font-size:12px; color:var(--ink2)}
+  .ballot-status b{color:var(--neon2)}
+
+  /* detail */
+  .detail-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px}
+  .big-pct{font-size:56px; font-weight:900;
+    background:linear-gradient(90deg, var(--neon2), var(--neon));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    line-height:1; font-variant-numeric:tabular-nums;}
+  .detail-chart{width:100%; height:260px; background:rgba(0,0,0,0.3); border-radius:12px; margin-top:10px}
+
+  /* movers */
+  .movers{display:flex; flex-direction:column; gap:8px}
+  .mover{display:flex; justify-content:space-between; align-items:center;
+    padding:10px 12px; border-radius:10px; background:rgba(0,0,0,0.25);
+    border:1px solid var(--border); font-size:13px;}
+  .mover .ml{font-weight:700}
+  .mover .ms{font-size:11px; color:var(--ink2)}
+  .mover .mr{font-weight:800; font-variant-numeric:tabular-nums}
+  .mover.up .mr{color:var(--gain)} .mover.down .mr{color:var(--loss)}
+
+  /* my ballot view */
+  .mb-preview{background:#0a0520; border:1px solid var(--neon); border-radius:16px;
+    padding:20px; margin-top:10px; box-shadow:0 0 40px rgba(255,43,214,0.3)}
+  .mb-preview .title{font-size:14px; letter-spacing:3px; text-transform:uppercase; color:var(--ink2)}
+  .mb-preview .head{font-size:26px; font-weight:900; letter-spacing:1px;
+    background:linear-gradient(90deg, var(--neon2), var(--neon));
+    -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .mb-list{list-style:none; margin-top:14px; display:grid; gap:6px}
+  .mb-list li{display:flex; align-items:center; gap:10px; padding:8px 12px;
+    background:rgba(255,43,214,0.08); border:1px solid var(--border); border-radius:10px;
+    font-weight:700;}
+  .mb-list.c2 li{background:rgba(0,229,255,0.08); border-color:rgba(0,229,255,0.3)}
+  .mb-list li .num{font-size:18px; font-weight:900; color:var(--neon); min-width:28px}
+  .mb-list.c2 li .num{color:var(--neon2)}
+  .mb-list li .meta{font-size:10px; color:var(--ink2); letter-spacing:1px; text-transform:uppercase; margin-left:auto}
+
+  footer{position:relative; z-index:3; text-align:center; color:var(--ink2);
+    font-size:11px; letter-spacing:2px; padding:24px; text-transform:uppercase;}
+  footer a{color:var(--neon2); text-decoration:none; cursor:pointer}
+
+  /* confetti */
+  .confetti{position:fixed; inset:0; pointer-events:none; z-index:200}
+  .confetti i{position:absolute; width:8px; height:14px; top:-20px;
+    animation: fall 2.2s linear forwards;}
+  @keyframes fall{to{transform: translateY(110vh) rotate(720deg); opacity:0}}
+
+  @keyframes flashUp{0%{background:rgba(54,255,139,0.25)}100%{background:transparent}}
+  @keyframes flashDown{0%{background:rgba(255,56,96,0.25)}100%{background:transparent}}
+  .flash-up{animation:flashUp 1.2s ease-out}
+  .flash-down{animation:flashDown 1.2s ease-out}
+</style>
+</head>
+<body>
+<div class="scan"></div>
+
+<div class="ticker-wrap"><div class="ticker" id="ticker"></div></div>
+
+<header>
+  <div class="brand">
+    <div class="brand-logo"></div>
+    <div>
+      <h1>EDC LAS VEGAS 2026 · HYPE MARKET</h1>
+      <small>MAY 15–17 · LAS VEGAS MOTOR SPEEDWAY</small>
+    </div>
+  </div>
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+    <span class="live-pill"><span class="dot"></span> LIVE MARKET</span>
+    <span class="live-pill" id="changeHandleBtn" style="background:rgba(0,229,255,0.12); border-color:rgba(0,229,255,0.4); color:var(--neon2); cursor:pointer" title="Click to change handle"><span id="meBadge">—</span></span>
+    <button class="btn-ghost" id="openImport" style="padding:12px 16px; font-size:12px">⎙ IMPORT</button>
+    <button class="btn-ghost" id="openMyBallot" style="padding:12px 16px; font-size:12px; display:none">◎ MY BALLOT</button>
+    <button class="cta" id="openBallot">◎ CAST BALLOT</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="stat big">
+    <div class="k">Event Countdown</div>
+    <div class="v" id="countdown">—</div>
+    <div class="sub" id="countdownSub">Until gates open</div>
+  </div>
+  <div class="stat"><div class="k">Total Ballots</div><div class="v" id="totalBallots">0</div><div class="sub" id="votersChip">waiting for first vote…</div></div>
+  <div class="stat"><div class="k">Top Contender</div><div class="v" id="topContender">—</div></div>
+  <div class="stat"><div class="k">Artists Tracked</div><div class="v" id="artistCount">0</div></div>
+</section>
+
+<div id="offlineBanner" style="display:none; margin:0 auto 16px; max-width:1400px; padding:16px 20px; background:rgba(255,56,96,0.12); border:1px solid rgba(255,56,96,0.4); border-radius:10px; color:var(--loss); font-size:13px">
+  <b>OFFLINE MODE</b> — add your Supabase URL and anon key to <code>SUPABASE_CONFIG</code> at the top of the &lt;script&gt; block to go live. See <code>supabase-schema.sql</code> and the setup guide for details.
+</div>
+
+<main>
+  <section>
+    <div class="section-title">
+      <h2>◦ THE MARKET · % CHANCE OF "BEST SET" ◦</h2>
+      <span class="hint" id="gridCount">—</span>
+    </div>
+    <div id="filters">
+      <div class="filter-row" id="dayFilters"></div>
+      <div class="filter-row" id="stageFilters"></div>
+    </div>
+    <div id="scopeBanner" style="display:none" class="scope-banner">
+      <span>⟟ Stage-relative market — % normalized within <b id="scopeName"></b></span>
+      <span class="btn-ghost" style="padding:4px 10px; cursor:pointer; font-size:10px" id="clearScope">CLEAR</span>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <aside>
+    <div class="panel">
+      <div class="section-title" style="margin-top:0"><h2>★ LEADERBOARD</h2></div>
+      <div id="leaderboard"></div>
+    </div>
+    <div class="panel">
+      <div class="section-title" style="margin-top:0"><h2>▲ TOP MOVERS</h2></div>
+      <div class="movers" id="movers"></div>
+    </div>
+    <div class="panel">
+      <div class="section-title" style="margin-top:0"><h2>♦ HOW IT WORKS</h2></div>
+      <p style="font-size:12px; line-height:1.7; color:var(--ink2)">
+        Submit your <b style="color:var(--neon)">TOP 5</b> most-anticipated DJs (weighted heavily) and
+        <b style="color:var(--neon2)">NEXT 5</b> (ranks 6-10, lower weight).
+        Filter by stage to switch to a <b style="color:var(--neon2)">stage-relative</b> market.
+      </p>
+      <p style="font-size:11px; margin-top:8px; color:var(--ink2)">
+        Rank weights: <code style="color:var(--neon2)">10·8·6·4·2</code> for top 5,
+        <code style="color:var(--neon2)">5·4·3·2·1</code> for ranks 6-10.
+      </p>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  LIVE MARKET · REALTIME SYNC VIA SUPABASE · <a id="resetBtn">WITHDRAW BALLOT / CLEAR CACHE</a>
+</footer>
+
+<!-- AUTH OVERLAY -->
+<div class="modal" id="authOverlay">
+  <div class="modal-box" style="max-width:460px">
+    <h3>PICK A HANDLE</h3>
+    <p style="font-size:12px; color:var(--ink2); margin-top:8px">
+      Your handle shows up next to your ballot on the live ticker. 2–24 characters.
+    </p>
+    <input id="authHandle" maxlength="24" placeholder="e.g. argy_stan_69"
+      style="margin-top:14px; width:100%; padding:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border); color:var(--ink); border-radius:8px; font-size:15px; letter-spacing:0.02em; font-family:inherit"/>
+    <div style="margin-top:18px; display:flex; gap:10px; justify-content:flex-end">
+      <button class="cta" id="authSubmit">▸ JOIN MARKET</button>
+    </div>
+  </div>
+</div>
+
+<!-- BALLOT MODAL -->
+<div class="modal" id="ballotModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closeBallot">✕</button>
+    <h3>CAST YOUR BALLOT</h3>
+    <p class="ballot-help">
+      Pick your most-anticipated DJs in order. <b>Top 5</b> carries 2× the weight of <b>ranks 6–10</b>.
+      Click DJs from the picker to add them to the next empty slot. Missing someone? Add them at the bottom.
+    </p>
+    <div class="ballot-cols">
+      <div class="ballot-col top5">
+        <h4><span>◆ TOP 5 (HIGH WEIGHT)</span><span id="t5status">0 / 5</span></h4>
+        <div id="t5slots"></div>
+      </div>
+      <div class="ballot-col top10">
+        <h4><span>◇ RANKS 6–10</span><span id="t10status">0 / 5</span></h4>
+        <div id="t10slots"></div>
+      </div>
+    </div>
+    <div class="picker">
+      <h4><span>DJ PICKER</span><input class="search" id="djSearch" placeholder="Search DJs..." /></h4>
+      <div class="chips" id="djChips"></div>
+      <div class="add-dj">
+        <input id="newDj" placeholder="Add a DJ not listed..." />
+        <button class="btn-ghost" id="addDjBtn">+ ADD</button>
+      </div>
+    </div>
+    <div class="ballot-actions">
+      <div class="ballot-status" id="ballotStatus">Fill at least 1 slot to submit.</div>
+      <div style="display:flex; gap:10px">
+        <button class="btn-ghost" id="clearBallot">CLEAR</button>
+        <button class="cta" id="submitBallot">▸ SUBMIT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal" id="importModal">
+  <div class="modal-box" style="max-width:720px">
+    <button class="modal-close" id="closeImport">✕</button>
+    <h3>IMPORT LINEUP</h3>
+    <p class="ballot-help">
+      Paste the full artist list — <b>one DJ per line</b>. Genre is optional; separators:
+      <code> — </code> <code> - </code> <code> | </code> <code>,</code>.
+      Lines ending in <code>:</code> are stage/section headers.
+    </p>
+    <textarea id="importText" style="width:100%; min-height:240px; background:rgba(0,0,0,0.4); border:1px solid var(--border); color:var(--ink); padding:12px; border-radius:10px; font-family:'SF Mono',Menlo,monospace; font-size:13px; line-height:1.5; outline:none; resize:vertical"></textarea>
+    <div style="display:flex; gap:16px; margin-top:14px; align-items:center; flex-wrap:wrap">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px">
+        <input type="radio" name="importMode" value="replace" checked /> Replace lineup
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px">
+        <input type="radio" name="importMode" value="add" /> Add to lineup
+      </label>
+    </div>
+    <div class="ballot-actions">
+      <div class="ballot-status" id="importStatus">Paste a list to preview.</div>
+      <div style="display:flex; gap:10px">
+        <button class="btn-ghost" id="previewImport">⎘ PREVIEW</button>
+        <button class="cta" id="submitImport">▸ IMPORT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal" id="detailModal">
+  <div class="modal-box">
+    <button class="modal-close" id="closeDetail">✕</button>
+    <div class="detail-head">
+      <div>
+        <div id="detailName" style="font-size:28px; font-weight:900; letter-spacing:1px"></div>
+        <div id="detailGenre" style="font-size:12px; color:var(--ink2); letter-spacing:2px; text-transform:uppercase; margin-top:4px"></div>
+        <div style="display:flex; gap:14px; align-items:baseline; margin-top:14px">
+          <div class="big-pct" id="detailPct">0%</div>
+          <div class="chg" id="detailChg">+0.00%</div>
+        </div>
+        <div id="detailVotes" style="font-size:11px; color:var(--ink2); margin-top:6px; letter-spacing:2px"></div>
+      </div>
+    </div>
+    <svg class="detail-chart" id="detailChart" viewBox="0 0 800 260" preserveAspectRatio="none"></svg>
+  </div>
+</div>
+
+<!-- MY BALLOT MODAL -->
+<div class="modal" id="myBallotModal">
+  <div class="modal-box" style="max-width:720px">
+    <button class="modal-close" id="closeMyBallot">✕</button>
+    <h3>MY BALLOT</h3>
+    <p class="ballot-help" id="mbMeta"></p>
+    <div class="mb-preview">
+      <div class="title">EDC LV 2026 · MY HYPE BALLOT</div>
+      <div class="head">TOP 5 MOST-ANTICIPATED</div>
+      <ol class="mb-list" id="mbTop5"></ol>
+      <div class="head" style="margin-top:14px; background:linear-gradient(90deg, var(--neon2), var(--neon3)); -webkit-background-clip:text; background-clip:text;">RANKS 6–10</div>
+      <ol class="mb-list c2" id="mbTop10"></ol>
+    </div>
+    <div class="ballot-actions">
+      <div class="ballot-status">Export a flashy story-format card to share.</div>
+      <div style="display:flex; gap:10px">
+        <button class="btn-ghost" id="mbRecast">RE-CAST</button>
+        <button class="cta cyan" id="mbDownload">⬇ DOWNLOAD PNG</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ==========================================================================
+   EDC LV 2026 HYPE MARKET — single-file app, v3
+   - 242-artist real lineup with day + stage + genre
+   - Per-stage scoped markets (filter by stage → % normalize within stage)
+   - MY BALLOT view with PNG export (canvas-rendered story card)
+   - localStorage persistence, live simulated crowd activity
+   ========================================================================== */
+
+const EVENT_DATE = new Date("2026-05-15T19:00:00-07:00");
+const STORAGE_KEY = "edc-hype-online-v1";
+
+/* =====================================================================
+   SUPABASE CONFIG — paste your project URL + anon key here.
+   Get them from: Supabase → Project → Settings → API
+   ===================================================================== */
+const SUPABASE_CONFIG = {
+  url:     "https://tojhthgimlwlxibskkbm.supabase.co",
+  anonKey: "sb_publishable_OlgdWZiMI5O7sHNa7BjG4A_uKW609xt"
+};
+const SUPABASE_READY = SUPABASE_CONFIG.url.startsWith("https://") &&
+                       !SUPABASE_CONFIG.url.includes("YOUR-PROJECT") &&
+                       SUPABASE_CONFIG.anonKey !== "sb_publishable_OlgdWZiMI5O7sHNa7BjG4A_uKW609xt";
+let sb = null, me = null, myHandle = null;
+let remoteBallots = []; // [{user_id, top5, top10}]
+let remoteProfiles = {}; // {user_id: handle}
+
+const SEED_DJS = [
+  {n:"Argy",d:"FRIDAY",s:"Kinetic Field",g:"Melodic Techno"},
+  {n:"1991",d:"FRIDAY",s:"Circuit Grounds",g:"Drum and Bass"},
+  {n:"Jackie Hollander",d:"FRIDAY",s:"Cosmic Meadow",g:"Tech House"},
+  {n:"Adriatique",d:"FRIDAY",s:"Neon Garden",g:"Melodic Techno"},
+  {n:"Adventure Club (Throwback Set)",d:"FRIDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Adrián Mills",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Cold Blue",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Abana b2b Juliet Mendoza",d:"FRIDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Avalon Emerson",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"The Chainsmokers",d:"FRIDAY",s:"Kinetic Field",g:"Electropop"},
+  {n:"BOU",d:"FRIDAY",s:"Circuit Grounds",g:"Drum and Bass"},
+  {n:"Max Dean b2b Luke Dean",d:"FRIDAY",s:"Cosmic Meadow",g:"House"},
+  {n:"ANASTAZJA",d:"FRIDAY",s:"Neon Garden",g:"House / Techno"},
+  {n:"ATLiens",d:"FRIDAY",s:"Basspod",g:"Riddim"},
+  {n:"Cloudy",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Cosmic Gate",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Josh Baker",d:"FRIDAY",s:"Stereobloom",g:"House"},
+  {n:"Heidi Lawden b2b Masha Mar",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Charlotte de Witte",d:"FRIDAY",s:"Kinetic Field",g:"Techno"},
+  {n:"I Hate Models",d:"FRIDAY",s:"Circuit Grounds",g:"Techno"},
+  {n:"MEDUZA³",d:"FRIDAY",s:"Cosmic Meadow",g:"Deep House"},
+  {n:"DJ Tennis b2b Chloé Caillet",d:"FRIDAY",s:"Neon Garden",g:"House / Techno"},
+  {n:"Culture Shock",d:"FRIDAY",s:"Basspod",g:"Drum and Bass"},
+  {n:"DØM1NA",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Darren Porter",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Luke Dean",d:"FRIDAY",s:"Stereobloom",g:"House"},
+  {n:"Massimiliano Pagliara",d:"FRIDAY",s:"Bionic Jungle",g:"Italo Disco"},
+  {n:"Chris Lorenzo",d:"FRIDAY",s:"Kinetic Field",g:"Bassline"},
+  {n:"Level Up",d:"FRIDAY",s:"Circuit Grounds",g:"Riddim"},
+  {n:"MPH",d:"FRIDAY",s:"Cosmic Meadow",g:"UK Garage"},
+  {n:"Eli Brown",d:"FRIDAY",s:"Neon Garden",g:"Techno"},
+  {n:"Cyclops",d:"FRIDAY",s:"Basspod",g:"Riddim"},
+  {n:"DYEN",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Darude",d:"FRIDAY",s:"Quantum Valley",g:"Eurodance"},
+  {n:"Luuk van Dijk",d:"FRIDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Paramida",d:"FRIDAY",s:"Bionic Jungle",g:"Acid House"},
+  {n:"Fisher",d:"FRIDAY",s:"Kinetic Field",g:"Tech House"},
+  {n:"Levity",d:"FRIDAY",s:"Circuit Grounds",g:"Dubstep"},
+  {n:"Notion",d:"FRIDAY",s:"Cosmic Meadow",g:"Bassline"},
+  {n:"Joseph Capriati",d:"FRIDAY",s:"Neon Garden",g:"Techno"},
+  {n:"Deathpact ∞ Deathpact",d:"FRIDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"GRAVEDGR",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Gareth Emery",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Max Dean",d:"FRIDAY",s:"Stereobloom",g:"House"},
+  {n:"Robert Hood",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Korolova",d:"FRIDAY",s:"Kinetic Field",g:"Melodic Techno"},
+  {n:"Nico Moreno",d:"FRIDAY",s:"Circuit Grounds",g:"Hard Techno"},
+  {n:"Roddy Lima",d:"FRIDAY",s:"Cosmic Meadow",g:"Tech House"},
+  {n:"Mëstiza",d:"FRIDAY",s:"Neon Garden",g:"Latin House"},
+  {n:"Ghengar",d:"FRIDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Johannes Schuster",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Ilan Bluestone",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Obskür",d:"FRIDAY",s:"Stereobloom",g:"Rally House"},
+  {n:"Salute b2b Chloé Caillet",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Laidback Luke b2b Chuckie",d:"FRIDAY",s:"Kinetic Field",g:"Main Stage"},
+  {n:"Ray Volpe",d:"FRIDAY",s:"Circuit Grounds",g:"Dubstep"},
+  {n:"San Pacho",d:"FRIDAY",s:"Cosmic Meadow",g:"Latin House"},
+  {n:"Peggy Gou",d:"FRIDAY",s:"Neon Garden",g:"House"},
+  {n:"GorillaT",d:"FRIDAY",s:"Basspod",g:"Riddim"},
+  {n:"KUKO",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Matty Ralph",d:"FRIDAY",s:"Quantum Valley",g:"Hard House"},
+  {n:"Omar+",d:"FRIDAY",s:"Stereobloom",g:"House"},
+  {n:"Stacy Christine",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Porter Robinson (DJ Set)",d:"FRIDAY",s:"Kinetic Field",g:"Main Stage"},
+  {n:"The Outlaw",d:"FRIDAY",s:"Circuit Grounds",g:"Electronic"},
+  {n:"Underworld",d:"FRIDAY",s:"Cosmic Meadow",g:"Big Beat"},
+  {n:"HEYZ",d:"FRIDAY",s:"Basspod",g:"Bass Music"},
+  {n:"Rebekah",d:"FRIDAY",s:"Wasteland",g:"Techno"},
+  {n:"Paul van Dyk",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Slamm",d:"FRIDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"The Carry Nation",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Sofi Tukker",d:"FRIDAY",s:"Kinetic Field",g:"Tropical House"},
+  {n:"Wooli",d:"FRIDAY",s:"Circuit Grounds",g:"Dubstep"},
+  {n:"Walker & Royce b2b VNSSA",d:"FRIDAY",s:"Cosmic Meadow",g:"Crossover"},
+  {n:"Kai Wachi",d:"FRIDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Serafina",d:"FRIDAY",s:"Wasteland",g:"Bounce"},
+  {n:"Pegassi",d:"FRIDAY",s:"Quantum Valley",g:"Hard House"},
+  {n:"Toman",d:"FRIDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Westend",d:"FRIDAY",s:"Cosmic Meadow",g:"Tech House"},
+  {n:"MUZZ",d:"FRIDAY",s:"Basspod",g:"Drum and Bass"},
+  {n:"Stan Christ",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Sarah de Warren",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Riot",d:"FRIDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Above & Beyond (Sunrise Set)",d:"SATURDAY",s:"Kinetic Field",g:"Main Stage"},
+  {n:"Boys Noize",d:"SATURDAY",s:"Circuit Grounds",g:"Electro House"},
+  {n:"BUNT. (In The Round)",d:"SATURDAY",s:"Cosmic Meadow",g:"Crossover"},
+  {n:"Ahmed Spins",d:"SATURDAY",s:"Neon Garden",g:"Afro House"},
+  {n:"Avello b2b Dennett",d:"SATURDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Alyssa Jolee",d:"SATURDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Andrew Rayel",d:"SATURDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Bolo (Sunrise Set)",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Bad Boombox b2b Ollie Lishman",d:"SATURDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"AR/CO",d:"SATURDAY",s:"Kinetic Field",g:"House"},
+  {n:"DJ Mandy",d:"SATURDAY",s:"Circuit Grounds",g:"Bass / Future Bass"},
+  {n:"DJ Gigola b2b MCR-T",d:"SATURDAY",s:"Cosmic Meadow",g:"Techno"},
+  {n:"Josh Baker b2b Kettama b2b Prospa",d:"SATURDAY",s:"Neon Garden",g:"House"},
+  {n:"Delta Heavy",d:"SATURDAY",s:"Basspod",g:"Drum and Bass"},
+  {n:"Audiofreq b3b Code Black b3b Toneshifterz",d:"SATURDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Astrix",d:"SATURDAY",s:"Quantum Valley",g:"Psytrance"},
+  {n:"CID",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Bashkka b2b Sedef Adasi",d:"SATURDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Hardwell",d:"SATURDAY",s:"Kinetic Field",g:"Big Room"},
+  {n:"Kettama",d:"SATURDAY",s:"Circuit Grounds",g:"Hard House"},
+  {n:"Frost Children",d:"SATURDAY",s:"Cosmic Meadow",g:"Hyperpop"},
+  {n:"Luciano",d:"SATURDAY",s:"Neon Garden",g:"Latin House"},
+  {n:"Doctor P b3b Flux Pavilion b3b FuntCase",d:"SATURDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Cutdwn",d:"SATURDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Billy Gillies",d:"SATURDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Discip",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Baugruppe90",d:"SATURDAY",s:"Bionic Jungle",g:"Hard House"},
+  {n:"Hayla",d:"SATURDAY",s:"Kinetic Field",g:"EDM"},
+  {n:"Lilly Palmer",d:"SATURDAY",s:"Circuit Grounds",g:"Techno"},
+  {n:"Hannah Laing",d:"SATURDAY",s:"Cosmic Meadow",g:"House"},
+  {n:"Mink",d:"SATURDAY",s:"Neon Garden",g:"House / Techno"},
+  {n:"Eptic b2b Space Laces",d:"SATURDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Da Tweekaz",d:"SATURDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Maddix",d:"SATURDAY",s:"Quantum Valley",g:"Big Room"},
+  {n:"Dreya V",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Benwal",d:"SATURDAY",s:"Bionic Jungle",g:"Hard House"},
+  {n:"John Summit",d:"SATURDAY",s:"Kinetic Field",g:"House"},
+  {n:"Peggy Gou b2b KI/KI",d:"SATURDAY",s:"Circuit Grounds",g:"House"},
+  {n:"Interplanetary Criminal",d:"SATURDAY",s:"Cosmic Meadow",g:"UK Garage"},
+  {n:"Prospa",d:"SATURDAY",s:"Neon Garden",g:"Breakbeat"},
+  {n:"Fallen with MC Dino",d:"SATURDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Dead X",d:"SATURDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Maria Healy",d:"SATURDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"HNTR",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Club Angel",d:"SATURDAY",s:"Bionic Jungle",g:"UK Garage"},
+  {n:"Kaskade",d:"SATURDAY",s:"Kinetic Field",g:"EDM"},
+  {n:"RØZ",d:"SATURDAY",s:"Circuit Grounds",g:"Bass / Future Bass"},
+  {n:"Malugi",d:"SATURDAY",s:"Cosmic Meadow",g:"Hard House"},
+  {n:"Silvie Loto",d:"SATURDAY",s:"Neon Garden",g:"Tech House"},
+  {n:"Getter",d:"SATURDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Lady Faith b2b LNY TNZ",d:"SATURDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Mathame",d:"SATURDAY",s:"Quantum Valley",g:"Melodic Techno"},
+  {n:"Noizu",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"HAAi b2b Luke Alessi",d:"SATURDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Steve Aoki",d:"SATURDAY",s:"Kinetic Field",g:"Electro House"},
+  {n:"Sammy Virji",d:"SATURDAY",s:"Circuit Grounds",g:"UK Garage"},
+  {n:"Snow Strippers",d:"SATURDAY",s:"Cosmic Meadow",g:"Electroclash"},
+  {n:"HOL!",d:"SATURDAY",s:"Basspod",g:"Riddim"},
+  {n:"Lil Texas",d:"SATURDAY",s:"Wasteland",g:"Frenchcore"},
+  {n:"Paul Oakenfold",d:"SATURDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"OMNOM",d:"SATURDAY",s:"Stereobloom",g:"Bass House"},
+  {n:"MCR-T",d:"SATURDAY",s:"Bionic Jungle",g:"Miami Bass"},
+  {n:"Sub Focus",d:"SATURDAY",s:"Kinetic Field",g:"Drum and Bass"},
+  {n:"Tiësto",d:"SATURDAY",s:"Circuit Grounds",g:"EDM"},
+  {n:"The Prodigy",d:"SATURDAY",s:"Cosmic Meadow",g:"Big Beat"},
+  {n:"Hybrid Minds",d:"SATURDAY",s:"Basspod",g:"Liquid Funk"},
+  {n:"Mish",d:"SATURDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Superstrings",d:"SATURDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Slugg",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Player Dave",d:"SATURDAY",s:"Bionic Jungle",g:"Glitch"},
+  {n:"Subtronics",d:"SATURDAY",s:"Kinetic Field",g:"Riddim"},
+  {n:"VTSS (In The Round)",d:"SATURDAY",s:"Cosmic Meadow",g:"Crossover"},
+  {n:"Mary Droppinz",d:"SATURDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Rob Gee b2b Lenny Dee",d:"SATURDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"T78",d:"SATURDAY",s:"Quantum Valley",g:"Techno"},
+  {n:"Wax Motif",d:"SATURDAY",s:"Stereobloom",g:"Bass House"},
+  {n:"Spray",d:"SATURDAY",s:"Bionic Jungle",g:"Acid House"},
+  {n:"Viperactive",d:"SATURDAY",s:"Basspod",g:"Riddim"},
+  {n:"The Saints",d:"SATURDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"Thomas Schumacher",d:"SATURDAY",s:"Quantum Valley",g:"Techno"},
+  {n:"YDG",d:"SATURDAY",s:"Basspod",g:"Riddim"},
+  {n:"Armin Van Buuren (Sunrise Set)",d:"SUNDAY",s:"Kinetic Field",g:"Main Stage"},
+  {n:"ANNA",d:"SUNDAY",s:"Circuit Grounds",g:"Techno"},
+  {n:"Alison Wonderland",d:"SUNDAY",s:"Cosmic Meadow",g:"EDM Trap"},
+  {n:"999999999",d:"SUNDAY",s:"Neon Garden",g:"Acid Techno"},
+  {n:"A.M.C w/ Phantom",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Clawz",d:"SUNDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Cassian",d:"SUNDAY",s:"Quantum Valley",g:"Melodic Techno"},
+  {n:"Chris Lorenzo b2b Bullet Tooth",d:"SUNDAY",s:"Stereobloom",g:"Bassline"},
+  {n:"Alves",d:"SUNDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Cloonee",d:"SUNDAY",s:"Kinetic Field",g:"Tech House"},
+  {n:"Beltran",d:"SUNDAY",s:"Circuit Grounds",g:"Tech House"},
+  {n:"Black Tiger Sex Machine",d:"SUNDAY",s:"Cosmic Meadow",g:"Dubstep"},
+  {n:"Adiel",d:"SUNDAY",s:"Neon Garden",g:"Dub Techno"},
+  {n:"ÆON:MODE (Sunrise Set)",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"DJ Isaac",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Cristoph",d:"SUNDAY",s:"Quantum Valley",g:"Melodic Techno"},
+  {n:"Hamdi",d:"SUNDAY",s:"Stereobloom",g:"UK Garage"},
+  {n:"Beltran b2b Simas",d:"SUNDAY",s:"Bionic Jungle",g:"Tech House"},
+  {n:"Funk Tribu",d:"SUNDAY",s:"Kinetic Field",g:"Hard House"},
+  {n:"Chris Stussy",d:"SUNDAY",s:"Circuit Grounds",g:"House"},
+  {n:"Dabin",d:"SUNDAY",s:"Cosmic Meadow",g:"Melodic Bass"},
+  {n:"DJ Gigola",d:"SUNDAY",s:"Neon Garden",g:"Techno"},
+  {n:"Ahee b2b Liquid Stranger",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Restricted",d:"SUNDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Eli & Fur",d:"SUNDAY",s:"Quantum Valley",g:"Melodic House"},
+  {n:"KLO",d:"SUNDAY",s:"Stereobloom",g:"Stutter House"},
+  {n:"DJ Tennis b2b Red Axes",d:"SUNDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Griz b2b Wooli",d:"SUNDAY",s:"Kinetic Field",g:"Dubstep"},
+  {n:"Kevin de Vries",d:"SUNDAY",s:"Circuit Grounds",g:"Melodic Techno"},
+  {n:"Gravagerz",d:"SUNDAY",s:"Cosmic Meadow",g:"House"},
+  {n:"Frankie Bones",d:"SUNDAY",s:"Neon Garden",g:"Acid House"},
+  {n:"Boogie T b2b Distinct Motive",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Rooler",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Innellea",d:"SUNDAY",s:"Quantum Valley",g:"Melodic Techno"},
+  {n:"LU.RE",d:"SUNDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"ISAbella",d:"SUNDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"Layton Giordani",d:"SUNDAY",s:"Kinetic Field",g:"Techno"},
+  {n:"Linska",d:"SUNDAY",s:"Circuit Grounds",g:"Melodic Techno"},
+  {n:"Nico Moreno b2b Holy Priest",d:"SUNDAY",s:"Cosmic Meadow",g:"Hard Techno"},
+  {n:"Indira Paganotto",d:"SUNDAY",s:"Neon Garden",g:"Techno"},
+  {n:"Eazybaked",d:"SUNDAY",s:"Basspod",g:"Bass Music"},
+  {n:"SIHK",d:"SUNDAY",s:"Wasteland",g:"Happy Hardcore"},
+  {n:"KREAM",d:"SUNDAY",s:"Quantum Valley",g:"House"},
+  {n:"Morgan Seatree",d:"SUNDAY",s:"Stereobloom",g:"Hard House"},
+  {n:"Kinahau",d:"SUNDAY",s:"Bionic Jungle",g:"Tech House"},
+  {n:"Martin Garrix",d:"SUNDAY",s:"Kinetic Field",g:"EDM"},
+  {n:"Solomun",d:"SUNDAY",s:"Circuit Grounds",g:"Melodic Techno"},
+  {n:"Nostalgix",d:"SUNDAY",s:"Cosmic Meadow",g:"Bass House"},
+  {n:"KI/KI",d:"SUNDAY",s:"Neon Garden",g:"Hard House"},
+  {n:"Infekt b2b Samplifire",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Sub Zero Project",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Massano",d:"SUNDAY",s:"Quantum Valley",g:"Melodic Techno"},
+  {n:"Murphy’s Law",d:"SUNDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Tiga",d:"SUNDAY",s:"Bionic Jungle",g:"Electroclash"},
+  {n:"Ship Wrek",d:"SUNDAY",s:"Kinetic Field",g:"Stutter House"},
+  {n:"Vintage Culture",d:"SUNDAY",s:"Circuit Grounds",g:"Brazilian Bass"},
+  {n:"San Holo (Wholesome Riddim Set)",d:"SUNDAY",s:"Cosmic Meadow",g:"Crossover"},
+  {n:"Klangkuenstler",d:"SUNDAY",s:"Neon Garden",g:"Hard Techno"},
+  {n:"Nightstalker with MC Dino",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"The Purge",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Rebūke",d:"SUNDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Sidney Charles b2b Bushbaby",d:"SUNDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Trace",d:"SUNDAY",s:"Kinetic Field",g:"Tech House"},
+  {n:"Seven Lions",d:"SUNDAY",s:"Cosmic Meadow",g:"Melodic Bass"},
+  {n:"Peekaboo",d:"SUNDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Vieze Asbak",d:"SUNDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"Shingo Nakamura",d:"SUNDAY",s:"Quantum Valley",g:"Progressive House"},
+  {n:"Silva Bumpa",d:"SUNDAY",s:"Stereobloom",g:"UK Garage"},
+  {n:"Zedd",d:"SUNDAY",s:"Kinetic Field",g:"EDM"},
+  {n:"William Black",d:"SUNDAY",s:"Cosmic Meadow",g:"Melodic Bass"},
+  {n:"Sippy",d:"SUNDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Warface",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Tinlicker (DJ Set)",d:"SUNDAY",s:"Quantum Valley",g:"Melodic House"},
+  {n:"Skream",d:"SUNDAY",s:"Stereobloom",g:"Dubstep"},
+  {n:"Virtual Riot",d:"SUNDAY",s:"Basspod",g:"Dubstep"},
+  {n:"Yosuf",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
+  {n:"Warung",d:"SUNDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"Whethan",d:"SUNDAY",s:"Basspod",g:"Electronic"}
+];
+
+
+// ---- STATE ----
+let state = loadState();
+// active filter state (not persisted)
+let filterDay = 'ALL';
+let filterStage = 'ALL';
+
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      if(s && s.djs && s.djs.length) return s;
+    }
+  }catch(e){}
+  const djs = SEED_DJS.map(d => ({
+    id: slug(d.n), name: d.n, genre: d.g, day: d.d, stage: d.s,
+    points: 0, history: [],
+  }));
+  const s = { djs, ballots: 0, lastSnapshot: {}, lastBallot: null };
+  // Online variant: NO synthetic ballots — live human votes only.
+  saveState(s);
+  return s;
+}
+function saveState(s=state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)) }
+
+const TOP5_W  = [10, 8, 6, 4, 2];
+const TOP10_W = [ 5, 4, 3, 2, 1];
+
+function primeSyntheticBallots(s, n){
+  for(let i=0;i<n;i++){
+    const shuffled = [...s.djs].sort(()=>Math.random()-0.5);
+    shuffled.slice(0,5).forEach((d,idx)=> d.points += TOP5_W[idx]);
+    shuffled.slice(5,10).forEach((d,idx)=> d.points += TOP10_W[idx]);
+    s.ballots++;
+  }
+  snapshotHistory(s);
+}
+function snapshotHistory(s=state){
+  const total = s.djs.reduce((a,d)=>a+d.points,0) || 1;
+  const t = Date.now();
+  s.djs.forEach(d=>{
+    const pct = (d.points/total)*100;
+    d.history.push({t, pct});
+    if(d.history.length > 80) d.history.shift();
+  });
+  const prev = {};
+  s.djs.forEach(d=>{
+    const hist = d.history;
+    prev[d.id] = hist.length>1 ? hist[hist.length-2].pct : hist[hist.length-1].pct;
+  });
+  s.lastSnapshot = prev;
+}
+
+// ---- SCOPE-AWARE PCT ----
+// If filterStage != 'ALL', pct is normalized within that stage's total.
+// filterDay also narrows scope for percentage calculation.
+function scopedSet(){
+  return state.djs.filter(d => {
+    if(filterDay !== 'ALL' && d.day !== filterDay) return false;
+    if(filterStage !== 'ALL' && d.stage !== filterStage) return false;
+    return true;
+  });
+}
+function scopeTotalPoints(){
+  if(filterDay === 'ALL' && filterStage === 'ALL'){
+    return state.djs.reduce((a,x)=>a+x.points,0) || 1;
+  }
+  return scopedSet().reduce((a,x)=>a+x.points,0) || 1;
+}
+function pctOf(d){
+  // Scoped when filter is active; global otherwise
+  if(filterDay === 'ALL' && filterStage === 'ALL'){
+    const total = state.djs.reduce((a,x)=>a+x.points,0) || 1;
+    return (d.points/total)*100;
+  }
+  // Only artists matching filter are part of this scope; out-of-scope get 0
+  if(filterDay !== 'ALL' && d.day !== filterDay) return 0;
+  if(filterStage !== 'ALL' && d.stage !== filterStage) return 0;
+  const total = scopeTotalPoints();
+  return (d.points/total)*100;
+}
+function globalPctOf(d){
+  const total = state.djs.reduce((a,x)=>a+x.points,0) || 1;
+  return (d.points/total)*100;
+}
+function chgOf(d){
+  // compare current snapshot vs previous (in global terms; scope-change is visual only)
+  const cur = globalPctOf(d);
+  const prev = state.lastSnapshot[d.id];
+  if(prev==null) return 0;
+  return cur - prev;
+}
+function fmtPct(n){ return n.toFixed(2)+"%" }
+function fmtChg(n){ const s = n>=0?"+":""; return s+n.toFixed(2)+"%" }
+
+// ---- FILTERS ----
+function renderFilters(){
+  const days = ['ALL','FRIDAY','SATURDAY','SUNDAY'];
+  const dayRow = document.getElementById('dayFilters');
+  dayRow.innerHTML = '<div class="lbl">Day</div>' + days.map(dy=>{
+    const lbl = dy==='ALL'?'ALL DAYS':dy.slice(0,3);
+    const cls = 'fchip ' + (dy==='FRIDAY'?'day-fri':dy==='SATURDAY'?'day-sat':dy==='SUNDAY'?'day-sun':'') + (filterDay===dy?' active':'');
+    return `<div class="${cls}" data-day="${dy}">${lbl}</div>`;
+  }).join('');
+  dayRow.querySelectorAll('[data-day]').forEach(el=>el.addEventListener('click', e=>{
+    filterDay = e.currentTarget.dataset.day; renderAll();
+  }));
+
+  const stages = ['ALL', ...Array.from(new Set(state.djs.map(d=>d.stage).filter(Boolean))).sort()];
+  const stageRow = document.getElementById('stageFilters');
+  stageRow.innerHTML = '<div class="lbl">Stage</div>' + stages.map(s=>{
+    const lbl = s==='ALL'?'ALL STAGES':s;
+    const cls = 'fchip' + (filterStage===s?' active':'');
+    return `<div class="${cls}" data-stage="${escapeAttr(s)}">${escapeHtml(lbl)}</div>`;
+  }).join('');
+  stageRow.querySelectorAll('[data-stage]').forEach(el=>el.addEventListener('click', e=>{
+    filterStage = e.currentTarget.dataset.stage; renderAll();
+  }));
+
+  // scope banner
+  const banner = document.getElementById('scopeBanner');
+  if(filterStage !== 'ALL' || filterDay !== 'ALL'){
+    banner.style.display = '';
+    const parts = [];
+    if(filterDay !== 'ALL') parts.push(filterDay);
+    if(filterStage !== 'ALL') parts.push(filterStage);
+    document.getElementById('scopeName').textContent = parts.join(' · ');
+  } else {
+    banner.style.display = 'none';
+  }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('clearScope').addEventListener('click', ()=>{
+    filterDay = 'ALL'; filterStage = 'ALL'; renderAll();
+  });
+});
+
+// ---- GRID ----
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const visible = scopedSet();
+  const sorted = [...visible].sort((a,b)=> pctOf(b)-pctOf(a));
+  const ballotIds = new Set([
+    ...(state.lastBallot?.top5||[]),
+    ...(state.lastBallot?.top10||[]),
+  ]);
+  grid.innerHTML = '';
+  sorted.forEach((d, idx)=>{
+    const pct = pctOf(d);
+    const chg = chgOf(d);
+    const chgClass = chg>0.01?'up':chg<-0.01?'down':'flat';
+    const card = document.createElement('div');
+    card.className = 'card' + (ballotIds.has(d.id)?' in-ballot':'');
+    const tags = [];
+    if(d.day) tags.push(`<span class="tag day-${d.day}">${d.day.slice(0,3)}</span>`);
+    if(d.stage) tags.push(`<span class="tag stage">${escapeHtml(d.stage)}</span>`);
+    if(ballotIds.has(d.id)){
+      const rank = (state.lastBallot.top5.indexOf(d.id))>=0
+        ? `#${state.lastBallot.top5.indexOf(d.id)+1}`
+        : `#${state.lastBallot.top10.indexOf(d.id)+6}`;
+      tags.push(`<span class="tag ballot">◆ YOUR ${rank}</span>`);
+    }
+    const barCap = (filterStage==='ALL'&&filterDay==='ALL') ? pct*3 : pct;
+    card.innerHTML = `
+      <div class="rank">#${idx+1}</div>
+      <div class="name">${escapeHtml(d.name)}</div>
+      <div class="genre">${escapeHtml(d.genre||'')}</div>
+      <div class="pct-row">
+        <div class="pct">${fmtPct(pct)}</div>
+        <div class="chg ${chgClass}">${chg>=0?'▲':'▼'} ${fmtChg(chg).replace('+','').replace('-','')}</div>
+      </div>
+      <div class="bar"><i style="width:${Math.min(100, barCap)}%"></i></div>
+      ${sparklineSvg(d.history)}
+      ${tags.length?`<div class="tag-row">${tags.join('')}</div>`:''}
+    `;
+    card.addEventListener('click', ()=> openDetail(d));
+    grid.appendChild(card);
+  });
+  const total = state.djs.length;
+  const scopeHint = (filterStage==='ALL'&&filterDay==='ALL')
+    ? `${total} artists · click card for history`
+    : `${visible.length} of ${total} shown · stage-relative %`;
+  document.getElementById('gridCount').textContent = scopeHint;
+}
+
+function sparklineSvg(history){
+  if(!history || history.length<2){
+    return `<svg class="spark" viewBox="0 0 200 44" preserveAspectRatio="none"></svg>`;
+  }
+  const pts = history.slice(-30);
+  const max = Math.max(...pts.map(p=>p.pct));
+  const min = Math.min(...pts.map(p=>p.pct));
+  const range = Math.max(0.5, max-min);
+  const n = pts.length;
+  const coords = pts.map((p,i)=>{
+    const x = (i/(n-1))*200;
+    const y = 42 - ((p.pct-min)/range)*38 - 2;
+    return [x,y];
+  });
+  const path = coords.map((c,i)=> (i?'L':'M')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+  const area = path + ` L 200,44 L 0,44 Z`;
+  const up = pts[n-1].pct >= pts[0].pct;
+  const color = up ? '#36ff8b' : '#ff3860';
+  const gid = 'g'+Math.random().toString(36).slice(2,7);
+  return `<svg class="spark" viewBox="0 0 200 44" preserveAspectRatio="none">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="${color}" fill-opacity="0.12"/>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" style="filter: drop-shadow(0 0 4px ${color})"/>
+  </svg>`;
+}
+
+// ---- LEADERBOARD / MOVERS ----
+function renderLeaderboard(){
+  const el = document.getElementById('leaderboard');
+  const pool = scopedSet();
+  const sorted = [...pool].sort((a,b)=>pctOf(b)-pctOf(a)).slice(0,10);
+  el.innerHTML = sorted.map((d,i)=>{
+    const chg = chgOf(d);
+    const chgClass = chg>0.01?'up':chg<-0.01?'down':'flat';
+    const badge = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    return `<div class="lb-row ${badge}">
+      <div class="r">${i+1}</div>
+      <div class="n">${escapeHtml(d.name)}</div>
+      <div class="p">${fmtPct(pctOf(d))}</div>
+      <div class="c ${chgClass}">${chg>=0?'▲':'▼'}${Math.abs(chg).toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+function renderMovers(){
+  const el = document.getElementById('movers');
+  const withChg = state.djs.map(d=>({d, chg:chgOf(d)})).filter(x=>Math.abs(x.chg)>0.001);
+  const gainers = [...withChg].sort((a,b)=>b.chg-a.chg).slice(0,3);
+  const losers  = [...withChg].sort((a,b)=>a.chg-b.chg).slice(0,3);
+  el.innerHTML = '';
+  gainers.forEach(x=>{
+    const row = document.createElement('div');
+    row.className = 'mover up';
+    row.innerHTML = `<div><div class="ml">${escapeHtml(x.d.name)}</div><div class="ms">${fmtPct(globalPctOf(x.d))}</div></div><div class="mr">▲ ${fmtChg(x.chg).replace('+','')}</div>`;
+    el.appendChild(row);
+  });
+  const sep = document.createElement('div');
+  sep.style.cssText = 'height:1px; background:var(--border); margin:6px 0';
+  el.appendChild(sep);
+  losers.forEach(x=>{
+    if(x.chg>=0) return;
+    const row = document.createElement('div');
+    row.className = 'mover down';
+    row.innerHTML = `<div><div class="ml">${escapeHtml(x.d.name)}</div><div class="ms">${fmtPct(globalPctOf(x.d))}</div></div><div class="mr">▼ ${fmtChg(x.chg).replace('-','')}</div>`;
+    el.appendChild(row);
+  });
+  if(!el.children.length){
+    el.innerHTML = `<div style="color:var(--ink2); font-size:12px; padding:8px">No moves yet. Cast a ballot to shake the market.</div>`;
+  }
+}
+
+function renderStats(){
+  document.getElementById('totalBallots').textContent = state.ballots.toLocaleString();
+  document.getElementById('artistCount').textContent = state.djs.length;
+  const top = [...state.djs].sort((a,b)=>globalPctOf(b)-globalPctOf(a))[0];
+  document.getElementById('topContender').textContent = top ? top.name : '—';
+}
+function renderTicker(){
+  const el = document.getElementById('ticker');
+  const items = [...state.djs].sort((a,b)=>globalPctOf(b)-globalPctOf(a));
+  const build = () => items.map(d=>{
+    const chg = chgOf(d);
+    const cls = chg>0.01?'up':chg<-0.01?'down':'';
+    const arrow = chg>0.01?'▲':chg<-0.01?'▼':'◆';
+    return `<span><b>${escapeHtml(d.name.toUpperCase())}</b> ${fmtPct(globalPctOf(d))} <span class="${cls}">${arrow} ${fmtChg(chg)}</span></span>`;
+  }).join('');
+  el.innerHTML = build() + build();
+}
+function renderAll(){
+  renderFilters();
+  renderGrid();
+  renderLeaderboard();
+  renderMovers();
+  renderStats();
+  renderTicker();
+  renderCountdown();
+  // my ballot button visibility
+  document.getElementById('openMyBallot').style.display = state.lastBallot ? '' : 'none';
+}
+function renderCountdown(){
+  const now = Date.now();
+  const diff = EVENT_DATE.getTime() - now;
+  if(diff<=0){
+    document.getElementById('countdown').textContent = 'LIVE NOW';
+    document.getElementById('countdownSub').textContent = 'Get to the speedway';
+    return;
+  }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  document.getElementById('countdown').textContent = `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+
+// ---- BALLOT ----
+const ballotModal = document.getElementById('ballotModal');
+let ballot = { top5: [], top10: [] };
+
+function openBallot(){
+  ballot = { top5: [], top10: [] };
+  // preload from lastBallot so re-cast is easy
+  if(state.lastBallot){
+    ballot.top5 = [...state.lastBallot.top5];
+    ballot.top10 = [...state.lastBallot.top10];
+  }
+  renderBallot();
+  ballotModal.classList.add('show');
+}
+function closeBallot(){ ballotModal.classList.remove('show') }
+
+document.getElementById('openBallot').addEventListener('click', openBallot);
+document.getElementById('closeBallot').addEventListener('click', closeBallot);
+ballotModal.addEventListener('click', e=>{ if(e.target===ballotModal) closeBallot() });
+
+function renderBallot(){
+  const t5 = document.getElementById('t5slots');
+  const t10 = document.getElementById('t10slots');
+  t5.innerHTML = Array.from({length:5}).map((_,i)=>{
+    const id = ballot.top5[i];
+    const dj = id ? state.djs.find(d=>d.id===id) : null;
+    return `<div class="slot ${dj?'filled':''}">
+      <div class="sr">${i+1}</div>
+      <div class="sn">${dj?escapeHtml(dj.name):'<span style="color:var(--ink2); font-weight:500">— empty —</span>'}</div>
+      ${dj?`<button data-rm-top5="${i}">✕</button>`:''}
+    </div>`;
+  }).join('');
+  t10.innerHTML = Array.from({length:5}).map((_,i)=>{
+    const id = ballot.top10[i];
+    const dj = id ? state.djs.find(d=>d.id===id) : null;
+    return `<div class="slot ${dj?'filled':''}">
+      <div class="sr">${i+6}</div>
+      <div class="sn">${dj?escapeHtml(dj.name):'<span style="color:var(--ink2); font-weight:500">— empty —</span>'}</div>
+      ${dj?`<button data-rm-top10="${i}">✕</button>`:''}
+    </div>`;
+  }).join('');
+
+  t5.querySelectorAll('[data-rm-top5]').forEach(b=>b.addEventListener('click',e=>{
+    ballot.top5.splice(parseInt(e.currentTarget.dataset.rmTop5),1);
+    renderBallot();
+  }));
+  t10.querySelectorAll('[data-rm-top10]').forEach(b=>b.addEventListener('click',e=>{
+    ballot.top10.splice(parseInt(e.currentTarget.dataset.rmTop10),1);
+    renderBallot();
+  }));
+
+  const q = (document.getElementById('djSearch').value||'').toLowerCase();
+  const used = new Set([...ballot.top5, ...ballot.top10]);
+  const chips = document.getElementById('djChips');
+  chips.innerHTML = state.djs
+    .filter(d=> !q || d.name.toLowerCase().includes(q) || (d.genre||'').toLowerCase().includes(q) || (d.stage||'').toLowerCase().includes(q))
+    .sort((a,b)=>a.name.localeCompare(b.name))
+    .map(d=>{
+      const dayShort = d.day ? d.day.slice(0,3) : '';
+      return `<div class="chip ${used.has(d.id)?'used':''}" data-id="${d.id}">${escapeHtml(d.name)}${dayShort?`<span class="cday">${dayShort}</span>`:''}</div>`;
+    }).join('');
+  chips.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',e=>{
+    if(c.classList.contains('used')) return;
+    const id = c.dataset.id;
+    if(ballot.top5.length<5){ ballot.top5.push(id) }
+    else if(ballot.top10.length<5){ ballot.top10.push(id) }
+    renderBallot();
+  }));
+
+  const n = ballot.top5.length + ballot.top10.length;
+  document.getElementById('t5status').textContent = `${ballot.top5.length} / 5`;
+  document.getElementById('t10status').textContent = `${ballot.top10.length} / 5`;
+  const status = document.getElementById('ballotStatus');
+  if(n===0) status.innerHTML = 'Fill at least 1 slot to submit.';
+  else status.innerHTML = `Ready: <b>${n}</b> pick${n>1?'s':''} selected.`;
+}
+
+document.getElementById('djSearch').addEventListener('input', renderBallot);
+document.getElementById('clearBallot').addEventListener('click', ()=>{ ballot={top5:[],top10:[]}; renderBallot() });
+document.getElementById('addDjBtn').addEventListener('click', ()=>{
+  const v = document.getElementById('newDj').value.trim();
+  if(!v) return;
+  const id = slug(v);
+  if(state.djs.find(d=>d.id===id)){ alert('Already on the board'); return }
+  state.djs.push({id, name:v, genre:'User added', day:null, stage:null, points:0, history:[]});
+  document.getElementById('newDj').value='';
+  saveState();
+  renderBallot();
+  renderAll();
+});
+
+document.getElementById('submitBallot').addEventListener('click', ()=>{
+  const n = ballot.top5.length + ballot.top10.length;
+  if(n===0) return;
+  ballot.top5.forEach((id,i)=>{
+    const dj = state.djs.find(d=>d.id===id); if(dj) dj.points += TOP5_W[i];
+  });
+  ballot.top10.forEach((id,i)=>{
+    const dj = state.djs.find(d=>d.id===id); if(dj) dj.points += TOP10_W[i];
+  });
+  state.ballots++;
+  state.lastBallot = { top5:[...ballot.top5], top10:[...ballot.top10], at: Date.now() };
+  snapshotHistory();
+  saveState();
+  closeBallot();
+  fireConfetti();
+  renderAll();
+  // auto-open MY BALLOT view on successful cast
+  setTimeout(()=> openMyBallot(), 650);
+});
+
+// ---- IMPORT ----
+const importModal = document.getElementById('importModal');
+document.getElementById('openImport').addEventListener('click', ()=>{
+  importModal.classList.add('show');
+  document.getElementById('importStatus').textContent = 'Paste a list to preview.';
+});
+document.getElementById('closeImport').addEventListener('click', ()=> importModal.classList.remove('show'));
+importModal.addEventListener('click', e=>{ if(e.target===importModal) importModal.classList.remove('show') });
+
+function parseLineup(text){
+  const lines = text.split(/\r?\n/);
+  const out = [];
+  let currentStageGenre = null;
+  const seen = new Set();
+  for(let raw of lines){
+    const line = raw.trim();
+    if(!line) continue;
+    if(/^[^—|]+:$/.test(line)){
+      currentStageGenre = line.replace(/:$/,'').trim();
+      continue;
+    }
+    let name, genre = null;
+    const splitMatch = line.match(/^(.+?)\s*(?:—|–| - |\||,)\s*(.+)$/);
+    if(splitMatch){ name = splitMatch[1].trim(); genre = splitMatch[2].trim(); }
+    else { name = line; }
+    name = name.replace(/^[\s•*\-–—·]+/,'').replace(/^\d+[\).]\s*/,'').trim();
+    if(!name) continue;
+    const key = name.toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key);
+    out.push({ name, genre: genre || currentStageGenre || '' });
+  }
+  return out;
+}
+
+document.getElementById('previewImport').addEventListener('click', ()=>{
+  const text = document.getElementById('importText').value;
+  const parsed = parseLineup(text);
+  const mode = document.querySelector('input[name="importMode"]:checked').value;
+  const existing = new Set(state.djs.map(d=>d.name.toLowerCase()));
+  const newOnes = parsed.filter(p=>!existing.has(p.name.toLowerCase()));
+  document.getElementById('importStatus').innerHTML =
+    `Parsed <b>${parsed.length}</b> · ` +
+    (mode==='replace' ? `Will <b>replace</b> lineup with ${parsed.length} DJs.`
+                      : `Will add <b>${newOnes.length}</b> new (${parsed.length-newOnes.length} already on board).`);
+});
+
+document.getElementById('submitImport').addEventListener('click', ()=>{
+  const text = document.getElementById('importText').value;
+  const parsed = parseLineup(text);
+  if(parsed.length===0){
+    document.getElementById('importStatus').textContent = 'Nothing to import — paste at least one DJ.';
+    return;
+  }
+  const mode = document.querySelector('input[name="importMode"]:checked').value;
+  if(mode==='replace'){
+    if(!confirm(`Replace the current lineup with ${parsed.length} DJs? All existing votes will be cleared.`)) return;
+    state = {
+      djs: parsed.map(p=>({ id: slug(p.name), name: p.name, genre: p.genre, day:null, stage:null, points: 0, history: [] })),
+      ballots: 0, lastSnapshot: {}, lastBallot: null,
+    };
+    primeSyntheticBallots(state, 12);
+  } else {
+    const existing = new Set(state.djs.map(d=>d.id));
+    parsed.forEach(p=>{
+      const id = slug(p.name);
+      if(existing.has(id)) return;
+      state.djs.push({ id, name: p.name, genre: p.genre, day:null, stage:null, points: 0, history: [] });
+    });
+    snapshotHistory();
+  }
+  saveState();
+  importModal.classList.remove('show');
+  fireConfetti();
+  renderAll();
+});
+
+// ---- DETAIL ----
+const detailModal = document.getElementById('detailModal');
+document.getElementById('closeDetail').addEventListener('click', ()=> detailModal.classList.remove('show'));
+detailModal.addEventListener('click', e=>{ if(e.target===detailModal) detailModal.classList.remove('show') });
+
+function openDetail(d){
+  document.getElementById('detailName').textContent = d.name;
+  const subparts = [];
+  if(d.day) subparts.push(d.day);
+  if(d.stage) subparts.push(d.stage);
+  if(d.genre) subparts.push(d.genre);
+  document.getElementById('detailGenre').textContent = subparts.join(' · ');
+  document.getElementById('detailPct').textContent = fmtPct(pctOf(d));
+  const chg = chgOf(d);
+  const chgEl = document.getElementById('detailChg');
+  chgEl.textContent = (chg>=0?'▲ +':'▼ ')+chg.toFixed(2)+'%';
+  chgEl.className = 'chg ' + (chg>0.01?'up':chg<-0.01?'down':'flat');
+  document.getElementById('detailVotes').textContent = `${d.points.toFixed(0)} POINTS · ${d.history.length} SNAPSHOTS`;
+  drawDetailChart(d);
+  detailModal.classList.add('show');
+}
+function drawDetailChart(d){
+  const svg = document.getElementById('detailChart');
+  svg.innerHTML = '';
+  const W=800, H=260, PAD=24;
+  if(d.history.length<2){
+    svg.innerHTML = `<text x="400" y="130" text-anchor="middle" fill="#a99dc8" font-size="14">No history yet — cast ballots to populate.</text>`;
+    return;
+  }
+  const pts = d.history;
+  const max = Math.max(...pts.map(p=>p.pct))*1.1;
+  const min = Math.max(0, Math.min(...pts.map(p=>p.pct))*0.9);
+  const range = Math.max(0.5, max-min);
+  const x = i => PAD + (i/(pts.length-1))*(W-PAD*2);
+  const y = v => H - PAD - ((v-min)/range)*(H-PAD*2);
+  let grid = '';
+  for(let i=0;i<=4;i++){
+    const gy = PAD + (i/4)*(H-PAD*2);
+    const val = max - (i/4)*range;
+    grid += `<line x1="${PAD}" y1="${gy}" x2="${W-PAD}" y2="${gy}" stroke="rgba(255,255,255,0.05)"/>`;
+    grid += `<text x="${PAD-6}" y="${gy+4}" text-anchor="end" fill="#a99dc8" font-size="10" font-family="monospace">${val.toFixed(1)}%</text>`;
+  }
+  const coords = pts.map((p,i)=>[x(i),y(p.pct)]);
+  const path = coords.map((c,i)=> (i?'L':'M')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+  const area = path + ` L ${W-PAD},${H-PAD} L ${PAD},${H-PAD} Z`;
+  const up = pts[pts.length-1].pct >= pts[0].pct;
+  const color = up ? '#36ff8b' : '#ff3860';
+  svg.innerHTML = `
+    <defs><linearGradient id="dg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}
+    <path d="${area}" fill="url(#dg)"/>
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" style="filter: drop-shadow(0 0 6px ${color})"/>
+    ${coords.map(c=>`<circle cx="${c[0]}" cy="${c[1]}" r="3" fill="${color}" style="filter: drop-shadow(0 0 4px ${color})"/>`).join('')}
+  `;
+}
+
+// ---- MY BALLOT VIEW + EXPORT ----
+const myBallotModal = document.getElementById('myBallotModal');
+document.getElementById('openMyBallot').addEventListener('click', openMyBallot);
+document.getElementById('closeMyBallot').addEventListener('click', ()=> myBallotModal.classList.remove('show'));
+myBallotModal.addEventListener('click', e=>{ if(e.target===myBallotModal) myBallotModal.classList.remove('show') });
+document.getElementById('mbRecast').addEventListener('click', ()=>{
+  myBallotModal.classList.remove('show');
+  openBallot();
+});
+document.getElementById('mbDownload').addEventListener('click', downloadBallotCard);
+
+function openMyBallot(){
+  if(!state.lastBallot){ return; }
+  const lb = state.lastBallot;
+  const djMap = Object.fromEntries(state.djs.map(d=>[d.id,d]));
+  const meta = new Date(lb.at).toLocaleString();
+  document.getElementById('mbMeta').innerHTML = `Cast <b>${meta}</b> · ${lb.top5.length + lb.top10.length} picks`;
+  const fmt = (ids, startRank) => ids.map((id,i)=>{
+    const d = djMap[id];
+    if(!d) return '';
+    const meta = [d.day?d.day.slice(0,3):'', d.stage||''].filter(Boolean).join(' · ');
+    return `<li><span class="num">${startRank+i}</span><span>${escapeHtml(d.name)}</span><span class="meta">${escapeHtml(meta)}</span></li>`;
+  }).join('');
+  document.getElementById('mbTop5').innerHTML = fmt(lb.top5, 1);
+  document.getElementById('mbTop10').innerHTML = fmt(lb.top10, 6);
+  myBallotModal.classList.add('show');
+}
+
+function downloadBallotCard(){
+  const blob = renderBallotCanvas();
+  blob.toBlob(b=>{
+    const url = URL.createObjectURL(b);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'edc-hype-ballot.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }, 'image/png');
+}
+
+// Render the share card to a canvas, return the canvas element
+function renderBallotCanvas(){
+  const W = 1080, H = 1920;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0, '#1a0535');
+  bg.addColorStop(0.5, '#2a0a50');
+  bg.addColorStop(1, '#0a0520');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+  // Radial glows
+  const addGlow = (x,y,r,color) => {
+    const g = ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,color); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  };
+  addGlow(W*0.2, H*0.1, 900, 'rgba(255,43,214,0.45)');
+  addGlow(W*0.85, H*0.25, 900, 'rgba(0,229,255,0.35)');
+  addGlow(W*0.5, H*1.0, 1100, 'rgba(157,75,255,0.4)');
+
+  // Grid overlay
+  ctx.strokeStyle = 'rgba(255,43,214,0.07)'; ctx.lineWidth = 1;
+  for(let x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // Header
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#a99dc8';
+  ctx.font = '900 34px -apple-system, system-ui, sans-serif';
+  ctx.letterSpacing = '8px';
+  ctx.fillText('EDC LAS VEGAS 2026', W/2, 140);
+
+  // Big title with gradient
+  const titleGrad = ctx.createLinearGradient(0,160,W,260);
+  titleGrad.addColorStop(0,'#00e5ff'); titleGrad.addColorStop(0.5,'#ff2bd6'); titleGrad.addColorStop(1,'#9d4bff');
+  ctx.fillStyle = titleGrad;
+  ctx.font = '900 96px -apple-system, system-ui, sans-serif';
+  ctx.fillText('MY HYPE BALLOT', W/2, 280);
+
+  ctx.fillStyle = '#a99dc8';
+  ctx.font = '700 26px -apple-system, system-ui, sans-serif';
+  ctx.fillText('MAY 15–17  ·  LAS VEGAS MOTOR SPEEDWAY', W/2, 330);
+
+  // Divider
+  const divGrad = ctx.createLinearGradient(W*0.1, 0, W*0.9, 0);
+  divGrad.addColorStop(0,'rgba(255,43,214,0)'); divGrad.addColorStop(0.5,'#ff2bd6'); divGrad.addColorStop(1,'rgba(0,229,255,0)');
+  ctx.strokeStyle = divGrad; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(W*0.1, 380); ctx.lineTo(W*0.9, 380); ctx.stroke();
+
+  // Draw a ranked list block
+  const lb = state.lastBallot;
+  const djMap = Object.fromEntries(state.djs.map(d=>[d.id,d]));
+  const drawSection = (y0, title, titleColor, ids, startRank, pillColor, pillAlpha) => {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = titleColor;
+    ctx.font = '900 52px -apple-system, system-ui, sans-serif';
+    ctx.fillText(title, 90, y0);
+    const rowH = 110;
+    ids.forEach((id, i)=>{
+      const dj = djMap[id]; if(!dj) return;
+      const y = y0 + 40 + i*rowH;
+      // pill bg
+      const pillGrad = ctx.createLinearGradient(90, y, W-90, y+rowH-20);
+      pillGrad.addColorStop(0, pillColor+pillAlpha);
+      pillGrad.addColorStop(1, pillColor+'22');
+      roundRect(ctx, 90, y, W-180, rowH-20, 20);
+      ctx.fillStyle = pillGrad; ctx.fill();
+      ctx.strokeStyle = pillColor+'88'; ctx.lineWidth = 2; ctx.stroke();
+
+      // rank number
+      ctx.textAlign = 'center';
+      ctx.fillStyle = pillColor;
+      ctx.font = '900 64px -apple-system, system-ui, sans-serif';
+      ctx.fillText(String(startRank+i), 155, y+60);
+
+      // name
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#fff';
+      ctx.font = '900 42px -apple-system, system-ui, sans-serif';
+      const nameMax = W-400;
+      const name = truncateText(ctx, dj.name, nameMax);
+      ctx.fillText(name, 220, y+52);
+
+      // meta
+      ctx.fillStyle = '#a99dc8';
+      ctx.font = '700 22px -apple-system, system-ui, sans-serif';
+      const meta = [dj.day?dj.day.slice(0,3):'', dj.stage||'', dj.genre||''].filter(Boolean).join(' · ');
+      ctx.fillText(truncateText(ctx, meta, nameMax), 220, y+82);
+    });
+    return y0 + 40 + ids.length*rowH + 30;
+  };
+
+  let y = 470;
+  if(lb.top5.length){
+    y = drawSection(y, '◆ TOP 5', '#ff2bd6', lb.top5, 1, '#ff2bd6', '33');
+  }
+  if(lb.top10.length){
+    y = drawSection(y+10, '◇ RANKS 6–10', '#00e5ff', lb.top10, 6, '#00e5ff', '22');
+  }
+
+  // Footer
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#a99dc8';
+  ctx.font = '700 24px -apple-system, system-ui, sans-serif';
+  ctx.fillText('EDC LV 2026 · HYPE MARKET', W/2, H-120);
+  ctx.fillStyle = '#5feaff';
+  ctx.font = '800 26px -apple-system, system-ui, sans-serif';
+  ctx.fillText(new Date(lb.at).toLocaleDateString(), W/2, H-80);
+
+  return canvas;
+}
+
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y, x+w,y+h, r);
+  ctx.arcTo(x+w,y+h, x,y+h, r);
+  ctx.arcTo(x,y+h, x,y, r);
+  ctx.arcTo(x,y, x+w,y, r);
+  ctx.closePath();
+}
+function truncateText(ctx, text, maxW){
+  if(ctx.measureText(text).width <= maxW) return text;
+  let lo=1, hi=text.length;
+  while(lo<hi){
+    const mid = Math.floor((lo+hi)/2);
+    if(ctx.measureText(text.slice(0,mid)+'…').width <= maxW) lo=mid+1; else hi=mid;
+  }
+  return text.slice(0, Math.max(1, lo-1))+'…';
+}
+
+// ---- CONFETTI ----
+function fireConfetti(){
+  const holder = document.getElementById('confetti');
+  const colors = ['#ff2bd6','#00e5ff','#9d4bff','#36ff8b','#ffd04b'];
+  for(let i=0;i<100;i++){
+    const el = document.createElement('i');
+    el.style.left = Math.random()*100+'%';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDelay = (Math.random()*0.4)+'s';
+    el.style.animationDuration = (1.6+Math.random()*1.4)+'s';
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    holder.appendChild(el);
+    setTimeout(()=>el.remove(), 3000);
+  }
+}
+
+// ---- RESET ----
+document.getElementById('resetBtn').addEventListener('click', e=>{
+  e.preventDefault();
+  if(!confirm('Reset the entire market? All ballots will be cleared.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadState();
+  filterDay='ALL'; filterStage='ALL';
+  renderAll();
+});
+
+// ---- CROWD TICK ----
+function crowdTick(){
+  const shuffled = [...state.djs]
+    .map(d=>({d, w: Math.random() + Math.min(5, d.points*0.02)}))
+    .sort((a,b)=>b.w-a.w)
+    .map(x=>x.d);
+  shuffled.slice(0,5).forEach((d,i)=> d.points += TOP5_W[i]*0.35);
+  shuffled.slice(5,10).forEach((d,i)=> d.points += TOP10_W[i]*0.35);
+  state.ballots += 1;
+  snapshotHistory();
+  saveState();
+  renderAll();
+}
+
+renderAll();
+setInterval(renderCountdown, 30*1000);
+// Online variant: no synthetic crowd ticks — realtime from Supabase instead.
+
+/* =====================================================================
+   ONLINE LAYER — Supabase auth + realtime ballot sync
+   ===================================================================== */
+
+function recomputeFromRemote(){
+  // reset points
+  state.djs.forEach(d => { d.points = 0; });
+  const byId = {}; state.djs.forEach(d => byId[d.id] = d);
+  remoteBallots.forEach(b => {
+    (b.top5 || []).forEach((id, i) => {
+      if(byId[id] && i < TOP5_W.length) byId[id].points += TOP5_W[i];
+    });
+    (b.top10 || []).forEach((id, i) => {
+      if(byId[id] && i < TOP10_W.length) byId[id].points += TOP10_W[i];
+    });
+  });
+  state.ballots = remoteBallots.length;
+  // mark your own last ballot so MY BALLOT view + "YOUR #n" badges still work
+  if(me){
+    const mine = remoteBallots.find(b => b.user_id === me.id);
+    state.lastBallot = mine ? { top5: mine.top5||[], top10: mine.top10||[], at: Date.now() } : null;
+  }
+  snapshotHistory();
+  saveState();
+  renderAll();
+}
+
+async function fetchAllBallots(){
+  const [{ data: balls, error: be }, { data: profs, error: pe }] = await Promise.all([
+    sb.from('edc_ballots').select('user_id, top5, top10'),
+    sb.from('edc_profiles').select('id, handle'),
+  ]);
+  if(be) console.warn('ballots fetch', be);
+  if(pe) console.warn('profiles fetch', pe);
+  remoteBallots = balls || [];
+  remoteProfiles = {};
+  (profs || []).forEach(p => { remoteProfiles[p.id] = p.handle; });
+  updateVotersChip();
+  recomputeFromRemote();
+}
+
+function updateVotersChip(){
+  const el = document.getElementById('votersChip');
+  if(!el) return;
+  const count = remoteBallots.length;
+  const names = remoteBallots.slice(-5).map(b => remoteProfiles[b.user_id] || '…').join(' · ');
+  el.innerHTML = `<b>${count}</b> LIVE BALLOT${count===1?'':'S'}` + (names ? `<span style="opacity:.65"> · ${names}</span>` : '');
+}
+
+function subscribeRealtime(){
+  sb.channel('market')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'edc_ballots' }, payload => {
+      const row = payload.new || payload.old;
+      if(!row) return;
+      if(payload.eventType === 'DELETE'){
+        remoteBallots = remoteBallots.filter(b => b.user_id !== row.user_id);
+      } else {
+        const i = remoteBallots.findIndex(b => b.user_id === row.user_id);
+        const entry = { user_id: row.user_id, top5: row.top5 || [], top10: row.top10 || [] };
+        if(i >= 0) remoteBallots[i] = entry; else remoteBallots.push(entry);
+      }
+      updateVotersChip();
+      recomputeFromRemote();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'edc_profiles' }, payload => {
+      const row = payload.new; if(!row) return;
+      remoteProfiles[row.id] = row.handle;
+      updateVotersChip();
+    })
+    .subscribe();
+}
+
+function showAuthOverlay(existingHandle){
+  const ov = document.getElementById('authOverlay');
+  const inp = document.getElementById('authHandle');
+  inp.value = existingHandle || '';
+  ov.classList.add('show');
+  inp.focus();
+}
+function hideAuthOverlay(){ document.getElementById('authOverlay').classList.remove('show'); }
+
+async function setHandle(handle){
+  handle = (handle || '').trim().slice(0, 24);
+  if(handle.length < 2){ alert('Pick a handle (2–24 chars)'); return false; }
+  const { error } = await sb.from('edc_profiles').upsert({ id: me.id, handle }, { onConflict: 'id' });
+  if(error){ alert('Could not save handle: ' + error.message); return false; }
+  myHandle = handle;
+  remoteProfiles[me.id] = handle;
+  localStorage.setItem('edc-hype-handle', handle);
+  const badge = document.getElementById('meBadge');
+  if(badge) badge.textContent = '@' + handle;
+  updateVotersChip();
+  return true;
+}
+
+async function initOnline(){
+  if(!SUPABASE_READY){
+    const banner = document.getElementById('offlineBanner');
+    if(banner) banner.style.display = 'block';
+    return;
+  }
+  sb = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'edc-hype-auth' }
+  });
+  // Restore or create session
+  let { data: { session } } = await sb.auth.getSession();
+  if(!session){
+    const { data, error } = await sb.auth.signInAnonymously();
+    if(error){ alert('Auth failed: ' + error.message); return; }
+    session = data.session;
+  }
+  me = session.user;
+  // Fetch existing profile / handle
+  const { data: prof } = await sb.from('edc_profiles').select('handle').eq('id', me.id).maybeSingle();
+  const cachedHandle = localStorage.getItem('edc-hype-handle');
+  if(prof && prof.handle){
+    myHandle = prof.handle;
+    localStorage.setItem('edc-hype-handle', myHandle);
+    const badge = document.getElementById('meBadge');
+    if(badge) badge.textContent = '@' + myHandle;
+  } else {
+    showAuthOverlay(cachedHandle);
+  }
+  await fetchAllBallots();
+  subscribeRealtime();
+}
+
+// Auth overlay handlers
+document.getElementById('authSubmit').addEventListener('click', async ()=>{
+  const v = document.getElementById('authHandle').value;
+  if(await setHandle(v)) hideAuthOverlay();
+});
+document.getElementById('authHandle').addEventListener('keydown', async e=>{
+  if(e.key === 'Enter'){
+    const v = document.getElementById('authHandle').value;
+    if(await setHandle(v)) hideAuthOverlay();
+  }
+});
+document.getElementById('changeHandleBtn').addEventListener('click', ()=>{
+  if(!sb || !me){ alert('Still connecting…'); return; }
+  showAuthOverlay(myHandle);
+});
+
+// Hijack SUBMIT BALLOT to upsert to Supabase (realtime pushes points to everyone)
+const _origSubmitBtn = document.getElementById('submitBallot');
+const _newSubmitBtn = _origSubmitBtn.cloneNode(true);
+_origSubmitBtn.parentNode.replaceChild(_newSubmitBtn, _origSubmitBtn);
+_newSubmitBtn.addEventListener('click', async ()=>{
+  const n = ballot.top5.length + ballot.top10.length;
+  if(n === 0) return;
+  if(!SUPABASE_READY){
+    alert('Online mode not configured. Open the file and paste your Supabase URL + anon key at the top of the <script> tag.');
+    return;
+  }
+  if(!me){ alert('Still connecting to the market…'); return; }
+  if(!myHandle){ showAuthOverlay(); return; }
+  _newSubmitBtn.disabled = true;
+  _newSubmitBtn.textContent = '▸ SENDING…';
+  const { error } = await sb.from('edc_ballots').upsert({
+    user_id: me.id,
+    top5:  [...ballot.top5],
+    top10: [...ballot.top10],
+  }, { onConflict: 'user_id' });
+  _newSubmitBtn.disabled = false;
+  _newSubmitBtn.textContent = '▸ SUBMIT';
+  if(error){ alert('Could not cast ballot: ' + error.message); return; }
+  closeBallot();
+  fireConfetti();
+  // realtime will fire and recompute; still eagerly update local to feel instant:
+  const entry = { user_id: me.id, top5:[...ballot.top5], top10:[...ballot.top10] };
+  const i = remoteBallots.findIndex(b => b.user_id === me.id);
+  if(i >= 0) remoteBallots[i] = entry; else remoteBallots.push(entry);
+  updateVotersChip();
+  recomputeFromRemote();
+  setTimeout(()=> openMyBallot(), 650);
+});
+
+// RESET button: online variant only clears local UI cache (market is shared)
+const _origResetBtn = document.getElementById('resetBtn');
+const _newResetBtn  = _origResetBtn.cloneNode(true);
+_origResetBtn.parentNode.replaceChild(_newResetBtn, _origResetBtn);
+_newResetBtn.addEventListener('click', async e=>{
+  e.preventDefault();
+  const choice = prompt('Type "withdraw" to take back your own ballot, or "clear" to wipe your local cache (others unaffected):');
+  if(choice === 'withdraw'){
+    if(!me) return;
+    const { error } = await sb.from('edc_ballots').delete().eq('user_id', me.id);
+    if(error){ alert('Could not withdraw: ' + error.message); return; }
+  } else if(choice === 'clear'){
+    localStorage.removeItem(STORAGE_KEY);
+    state = loadState();
+    filterDay='ALL'; filterStage='ALL';
+    renderAll();
+  }
+});
+
+initOnline();
+</script>
+</body>
+</html>
