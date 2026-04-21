@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>EDC LV 2026 · Hype Market (Live)</title>
+<title>EDC LV 2026 Â· Hype Market (Live)</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -213,15 +213,28 @@
     margin-bottom:10px; display:flex; justify-content:space-between}
   .ballot-col.top5 h4 span:first-child{color:var(--neon)}
   .ballot-col.top10 h4 span:first-child{color:var(--neon2)}
-  .slot{display:flex; align-items:center; gap:8px; padding:8px 10px; margin-bottom:6px;
-    background:rgba(255,255,255,0.04); border:1px dashed rgba(255,43,214,0.3);
-    border-radius:8px; font-size:13px; min-height:36px;}
-  .slot.filled{border-style:solid; border-color:var(--border); background:rgba(255,43,214,0.08)}
-  .slot .sr{width:22px; text-align:center; color:var(--ink2); font-weight:800; font-variant-numeric:tabular-nums}
-  .slot .sn{flex:1; font-weight:700}
-  .slot button{background:transparent; border:1px solid var(--border); color:var(--ink2);
-    width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:12px;}
-  .slot button:hover{color:var(--loss); border-color:var(--loss)}
+  .zone-slots{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; min-height:54px;}
+  .zone-slots:empty::before{content:'â drop here â'; display:block; text-align:center;
+    color:var(--ink2); font-size:11px; letter-spacing:2px; padding:14px 8px;
+    border:1px dashed rgba(255,43,214,0.3); border-radius:8px;}
+  .slot{display:flex; align-items:center; gap:8px; padding:8px 10px;
+    background:rgba(255,43,214,0.08); border:1px solid var(--border);
+    border-radius:8px; font-size:13px; min-height:36px; cursor:grab;
+    transition: transform .1s, border-color .15s;}
+  .slot:active{cursor:grabbing}
+  .slot:hover{border-color:var(--neon)}
+  .slot.dragging{opacity:0.4; transform:scale(0.98)}
+  .slot .sr{width:24px; text-align:center; color:var(--neon); font-weight:800; font-variant-numeric:tabular-nums}
+  .ballot-col.top10 .slot .sr{color:var(--neon2)}
+  .slot .sn{flex:1; font-weight:700; pointer-events:none}
+  .slot .handle{color:var(--ink2); font-size:14px; opacity:0.5; pointer-events:none}
+  .ballot-col.drop-target, .chips.drop-target{border-color:var(--neon); background:rgba(54,255,139,0.06)}
+  .drop-indicator{height:2px; background:var(--neon); margin:2px 0; border-radius:1px;
+    box-shadow:0 0 8px var(--neon);}
+  .chip{cursor:grab;}
+  .chip:active{cursor:grabbing}
+  .chip.dragging{opacity:0.4}
+  .pool-label{font-size:9px; letter-spacing:2px; color:var(--neon2); margin-left:8px; font-weight:700}
 
   .picker{margin-top:18px; background:rgba(0,0,0,0.25); border:1px solid var(--border);
     border-radius:12px; padding:12px;}
@@ -238,10 +251,6 @@
   .chip.used{opacity:0.35; cursor:not-allowed; text-decoration:line-through}
   .chip .cday{font-size:9px; opacity:0.7; margin-left:4px; letter-spacing:0.5px}
 
-  .add-dj{display:flex; gap:8px; margin-top:10px}
-  .add-dj input{flex:1; background:rgba(0,0,0,0.4); border:1px solid var(--border); color:var(--ink);
-    padding:8px 12px; border-radius:8px; font-size:13px; outline:none;}
-  .add-dj input:focus{border-color:var(--neon)}
   .btn-ghost{background:transparent; border:1px solid var(--border); color:var(--ink);
     padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:700; letter-spacing:1px;}
   .btn-ghost:hover{border-color:var(--neon2); color:var(--neon2)}
@@ -311,46 +320,45 @@
   <div class="brand">
     <div class="brand-logo"></div>
     <div>
-      <h1>EDC LAS VEGAS 2026 · HYPE MARKET</h1>
-      <small>MAY 15–17 · LAS VEGAS MOTOR SPEEDWAY</small>
+      <h1>EDC LAS VEGAS 2026 Â· HYPE MARKET</h1>
+      <small>MAY 15â17 Â· LAS VEGAS MOTOR SPEEDWAY</small>
     </div>
   </div>
   <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
     <span class="live-pill"><span class="dot"></span> LIVE MARKET</span>
-    <span class="live-pill" id="changeHandleBtn" style="background:rgba(0,229,255,0.12); border-color:rgba(0,229,255,0.4); color:var(--neon2); cursor:pointer" title="Click to change handle"><span id="meBadge">—</span></span>
-    <button class="btn-ghost" id="openImport" style="padding:12px 16px; font-size:12px">⎙ IMPORT</button>
-    <button class="btn-ghost" id="openMyBallot" style="padding:12px 16px; font-size:12px; display:none">◎ MY BALLOT</button>
-    <button class="cta" id="openBallot">◎ CAST BALLOT</button>
+    <span class="live-pill" id="changeHandleBtn" style="background:rgba(0,229,255,0.12); border-color:rgba(0,229,255,0.4); color:var(--neon2); cursor:pointer" title="Click to change handle"><span id="meBadge">â</span></span>
+    <button class="btn-ghost" id="openMyBallot" style="padding:12px 16px; font-size:12px; display:none">â MY BALLOT</button>
+    <button class="cta" id="openBallot">â CAST BALLOT</button>
   </div>
 </header>
 
 <section class="hero">
   <div class="stat big">
     <div class="k">Event Countdown</div>
-    <div class="v" id="countdown">—</div>
+    <div class="v" id="countdown">â</div>
     <div class="sub" id="countdownSub">Until gates open</div>
   </div>
-  <div class="stat"><div class="k">Total Ballots</div><div class="v" id="totalBallots">0</div><div class="sub" id="votersChip">waiting for first vote…</div></div>
-  <div class="stat"><div class="k">Top Contender</div><div class="v" id="topContender">—</div></div>
+  <div class="stat"><div class="k">Total Ballots</div><div class="v" id="totalBallots">0</div><div class="sub" id="votersChip">waiting for first voteâ¦</div></div>
+  <div class="stat"><div class="k">Top Contender</div><div class="v" id="topContender">â</div></div>
   <div class="stat"><div class="k">Artists Tracked</div><div class="v" id="artistCount">0</div></div>
 </section>
 
 <div id="offlineBanner" style="display:none; margin:0 auto 16px; max-width:1400px; padding:16px 20px; background:rgba(255,56,96,0.12); border:1px solid rgba(255,56,96,0.4); border-radius:10px; color:var(--loss); font-size:13px">
-  <b>OFFLINE MODE</b> — add your Supabase URL and anon key to <code>SUPABASE_CONFIG</code> at the top of the &lt;script&gt; block to go live. See <code>supabase-schema.sql</code> and the setup guide for details.
+  <b>OFFLINE MODE</b> â add your Supabase URL and anon key to <code>SUPABASE_CONFIG</code> at the top of the &lt;script&gt; block to go live. See <code>supabase-schema.sql</code> and the setup guide for details.
 </div>
 
 <main>
   <section>
     <div class="section-title">
-      <h2>◦ THE MARKET · % CHANCE OF "BEST SET" ◦</h2>
-      <span class="hint" id="gridCount">—</span>
+      <h2>â¦ THE MARKET Â· % CHANCE OF "BEST SET" â¦</h2>
+      <span class="hint" id="gridCount">â</span>
     </div>
     <div id="filters">
       <div class="filter-row" id="dayFilters"></div>
       <div class="filter-row" id="stageFilters"></div>
     </div>
     <div id="scopeBanner" style="display:none" class="scope-banner">
-      <span>⟟ Stage-relative market — % normalized within <b id="scopeName"></b></span>
+      <span>â Stage-relative market â % normalized within <b id="scopeName"></b></span>
       <span class="btn-ghost" style="padding:4px 10px; cursor:pointer; font-size:10px" id="clearScope">CLEAR</span>
     </div>
     <div class="grid" id="grid"></div>
@@ -358,30 +366,30 @@
 
   <aside>
     <div class="panel">
-      <div class="section-title" style="margin-top:0"><h2>★ LEADERBOARD</h2></div>
+      <div class="section-title" style="margin-top:0"><h2>â LEADERBOARD</h2></div>
       <div id="leaderboard"></div>
     </div>
     <div class="panel">
-      <div class="section-title" style="margin-top:0"><h2>▲ TOP MOVERS</h2></div>
+      <div class="section-title" style="margin-top:0"><h2>â² TOP MOVERS</h2></div>
       <div class="movers" id="movers"></div>
     </div>
     <div class="panel">
-      <div class="section-title" style="margin-top:0"><h2>♦ HOW IT WORKS</h2></div>
+      <div class="section-title" style="margin-top:0"><h2>â¦ HOW IT WORKS</h2></div>
       <p style="font-size:12px; line-height:1.7; color:var(--ink2)">
         Submit your <b style="color:var(--neon)">TOP 5</b> most-anticipated DJs (weighted heavily) and
         <b style="color:var(--neon2)">NEXT 5</b> (ranks 6-10, lower weight).
         Filter by stage to switch to a <b style="color:var(--neon2)">stage-relative</b> market.
       </p>
       <p style="font-size:11px; margin-top:8px; color:var(--ink2)">
-        Rank weights: <code style="color:var(--neon2)">10·8·6·4·2</code> for top 5,
-        <code style="color:var(--neon2)">5·4·3·2·1</code> for ranks 6-10.
+        Rank weights: <code style="color:var(--neon2)">10Â·8Â·6Â·4Â·2</code> for top 5,
+        <code style="color:var(--neon2)">5Â·4Â·3Â·2Â·1</code> for ranks 6-10.
       </p>
     </div>
   </aside>
 </main>
 
 <footer>
-  LIVE MARKET · REALTIME SYNC VIA SUPABASE · <a id="resetBtn">WITHDRAW BALLOT / CLEAR CACHE</a>
+  LIVE MARKET Â· REALTIME SYNC VIA SUPABASE Â· <a id="resetBtn">WITHDRAW BALLOT / CLEAR CACHE</a>
 </footer>
 
 <!-- AUTH OVERLAY -->
@@ -389,12 +397,12 @@
   <div class="modal-box" style="max-width:460px">
     <h3>PICK A HANDLE</h3>
     <p style="font-size:12px; color:var(--ink2); margin-top:8px">
-      Your handle shows up next to your ballot on the live ticker. 2–24 characters.
+      Your handle shows up next to your ballot on the live ticker. 2â24 characters.
     </p>
     <input id="authHandle" maxlength="24" placeholder="e.g. argy_stan_69"
       style="margin-top:14px; width:100%; padding:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border); color:var(--ink); border-radius:8px; font-size:15px; letter-spacing:0.02em; font-family:inherit"/>
     <div style="margin-top:18px; display:flex; gap:10px; justify-content:flex-end">
-      <button class="cta" id="authSubmit">▸ JOIN MARKET</button>
+      <button class="cta" id="authSubmit">â¸ JOIN MARKET</button>
     </div>
   </div>
 </div>
@@ -402,64 +410,34 @@
 <!-- BALLOT MODAL -->
 <div class="modal" id="ballotModal">
   <div class="modal-box">
-    <button class="modal-close" id="closeBallot">✕</button>
+    <button class="modal-close" id="closeBallot">â</button>
     <h3>CAST YOUR BALLOT</h3>
     <p class="ballot-help">
-      Pick your most-anticipated DJs in order. <b>Top 5</b> carries 2× the weight of <b>ranks 6–10</b>.
-      Click DJs from the picker to add them to the next empty slot. Missing someone? Add them at the bottom.
+      <b>Drag</b> DJs from the pool into <b>Top 5</b> (2Ã weight) or <b>Ranks 6â10</b>.
+      Drag to reorder inside a zone. Drag a slot back to the pool to remove.
     </p>
     <div class="ballot-cols">
-      <div class="ballot-col top5">
-        <h4><span>◆ TOP 5 (HIGH WEIGHT)</span><span id="t5status">0 / 5</span></h4>
-        <div id="t5slots"></div>
+      <div class="ballot-col top5" id="zoneTop5" data-zone="top5">
+        <h4><span>â TOP 5 (HIGH WEIGHT)</span><span id="t5status">0 / 5</span></h4>
+        <ol class="zone-slots" id="t5slots"></ol>
       </div>
-      <div class="ballot-col top10">
-        <h4><span>◇ RANKS 6–10</span><span id="t10status">0 / 5</span></h4>
-        <div id="t10slots"></div>
+      <div class="ballot-col top10" id="zoneTop10" data-zone="top10">
+        <h4><span>â RANKS 6â10</span><span id="t10status">0 / 5</span></h4>
+        <ol class="zone-slots" id="t10slots"></ol>
       </div>
     </div>
     <div class="picker">
-      <h4><span>DJ PICKER</span><input class="search" id="djSearch" placeholder="Search DJs..." /></h4>
-      <div class="chips" id="djChips"></div>
-      <div class="add-dj">
-        <input id="newDj" placeholder="Add a DJ not listed..." />
-        <button class="btn-ghost" id="addDjBtn">+ ADD</button>
-      </div>
+      <h4>
+        <span>DJ POOL <span class="pool-label">POPULAR â¸ ALPHA</span></span>
+        <input class="search" id="djSearch" placeholder="Search DJs..." />
+      </h4>
+      <div class="chips pool-zone" id="djChips" data-zone="pool"></div>
     </div>
     <div class="ballot-actions">
       <div class="ballot-status" id="ballotStatus">Fill at least 1 slot to submit.</div>
       <div style="display:flex; gap:10px">
         <button class="btn-ghost" id="clearBallot">CLEAR</button>
-        <button class="cta" id="submitBallot">▸ SUBMIT</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- IMPORT MODAL -->
-<div class="modal" id="importModal">
-  <div class="modal-box" style="max-width:720px">
-    <button class="modal-close" id="closeImport">✕</button>
-    <h3>IMPORT LINEUP</h3>
-    <p class="ballot-help">
-      Paste the full artist list — <b>one DJ per line</b>. Genre is optional; separators:
-      <code> — </code> <code> - </code> <code> | </code> <code>,</code>.
-      Lines ending in <code>:</code> are stage/section headers.
-    </p>
-    <textarea id="importText" style="width:100%; min-height:240px; background:rgba(0,0,0,0.4); border:1px solid var(--border); color:var(--ink); padding:12px; border-radius:10px; font-family:'SF Mono',Menlo,monospace; font-size:13px; line-height:1.5; outline:none; resize:vertical"></textarea>
-    <div style="display:flex; gap:16px; margin-top:14px; align-items:center; flex-wrap:wrap">
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px">
-        <input type="radio" name="importMode" value="replace" checked /> Replace lineup
-      </label>
-      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px">
-        <input type="radio" name="importMode" value="add" /> Add to lineup
-      </label>
-    </div>
-    <div class="ballot-actions">
-      <div class="ballot-status" id="importStatus">Paste a list to preview.</div>
-      <div style="display:flex; gap:10px">
-        <button class="btn-ghost" id="previewImport">⎘ PREVIEW</button>
-        <button class="cta" id="submitImport">▸ IMPORT</button>
+        <button class="cta" id="submitBallot">â¸ SUBMIT</button>
       </div>
     </div>
   </div>
@@ -468,7 +446,7 @@
 <!-- DETAIL MODAL -->
 <div class="modal" id="detailModal">
   <div class="modal-box">
-    <button class="modal-close" id="closeDetail">✕</button>
+    <button class="modal-close" id="closeDetail">â</button>
     <div class="detail-head">
       <div>
         <div id="detailName" style="font-size:28px; font-weight:900; letter-spacing:1px"></div>
@@ -487,21 +465,21 @@
 <!-- MY BALLOT MODAL -->
 <div class="modal" id="myBallotModal">
   <div class="modal-box" style="max-width:720px">
-    <button class="modal-close" id="closeMyBallot">✕</button>
+    <button class="modal-close" id="closeMyBallot">â</button>
     <h3>MY BALLOT</h3>
     <p class="ballot-help" id="mbMeta"></p>
     <div class="mb-preview">
-      <div class="title">EDC LV 2026 · MY HYPE BALLOT</div>
+      <div class="title">EDC LV 2026 Â· MY HYPE BALLOT</div>
       <div class="head">TOP 5 MOST-ANTICIPATED</div>
       <ol class="mb-list" id="mbTop5"></ol>
-      <div class="head" style="margin-top:14px; background:linear-gradient(90deg, var(--neon2), var(--neon3)); -webkit-background-clip:text; background-clip:text;">RANKS 6–10</div>
+      <div class="head" style="margin-top:14px; background:linear-gradient(90deg, var(--neon2), var(--neon3)); -webkit-background-clip:text; background-clip:text;">RANKS 6â10</div>
       <ol class="mb-list c2" id="mbTop10"></ol>
     </div>
     <div class="ballot-actions">
       <div class="ballot-status">Export a flashy story-format card to share.</div>
       <div style="display:flex; gap:10px">
         <button class="btn-ghost" id="mbRecast">RE-CAST</button>
-        <button class="cta cyan" id="mbDownload">⬇ DOWNLOAD PNG</button>
+        <button class="cta cyan" id="mbDownload">â¬ DOWNLOAD PNG</button>
       </div>
     </div>
   </div>
@@ -511,9 +489,9 @@
 
 <script>
 /* ==========================================================================
-   EDC LV 2026 HYPE MARKET — single-file app, v3
+   EDC LV 2026 HYPE MARKET â single-file app, v3
    - 242-artist real lineup with day + stage + genre
-   - Per-stage scoped markets (filter by stage → % normalize within stage)
+   - Per-stage scoped markets (filter by stage â % normalize within stage)
    - MY BALLOT view with PNG export (canvas-rendered story card)
    - localStorage persistence, live simulated crowd activity
    ========================================================================== */
@@ -522,8 +500,8 @@ const EVENT_DATE = new Date("2026-05-15T19:00:00-07:00");
 const STORAGE_KEY = "edc-hype-online-v1";
 
 /* =====================================================================
-   SUPABASE CONFIG — paste your project URL + anon key here.
-   Get them from: Supabase → Project → Settings → API
+   SUPABASE CONFIG â paste your project URL + anon key here.
+   Get them from: Supabase â Project â Settings â API
    ===================================================================== */
 const SUPABASE_CONFIG = {
   url:     "https://tojhthgimlwlxibskkbm.supabase.co",
@@ -531,7 +509,8 @@ const SUPABASE_CONFIG = {
 };
 const SUPABASE_READY = SUPABASE_CONFIG.url.startsWith("https://") &&
                        !SUPABASE_CONFIG.url.includes("YOUR-PROJECT") &&
-                       SUPABASE_CONFIG.anonKey.length > 20 && !SUPABASE_CONFIG.anonKey.includes("YOUR_ANON_KEY");
+                       SUPABASE_CONFIG.anonKey.length > 20 &&
+                       !SUPABASE_CONFIG.anonKey.includes("YOUR_ANON_KEY");
 let sb = null, me = null, myHandle = null;
 let remoteBallots = []; // [{user_id, top5, top10}]
 let remoteProfiles = {}; // {user_id: handle}
@@ -542,7 +521,7 @@ const SEED_DJS = [
   {n:"Jackie Hollander",d:"FRIDAY",s:"Cosmic Meadow",g:"Tech House"},
   {n:"Adriatique",d:"FRIDAY",s:"Neon Garden",g:"Melodic Techno"},
   {n:"Adventure Club (Throwback Set)",d:"FRIDAY",s:"Basspod",g:"Bass / Dubstep"},
-  {n:"Adrián Mills",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
+  {n:"AdriÃ¡n Mills",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
   {n:"Cold Blue",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
   {n:"Abana b2b Juliet Mendoza",d:"FRIDAY",s:"Stereobloom",g:"Tech House"},
   {n:"Avalon Emerson",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
@@ -557,10 +536,10 @@ const SEED_DJS = [
   {n:"Heidi Lawden b2b Masha Mar",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
   {n:"Charlotte de Witte",d:"FRIDAY",s:"Kinetic Field",g:"Techno"},
   {n:"I Hate Models",d:"FRIDAY",s:"Circuit Grounds",g:"Techno"},
-  {n:"MEDUZA³",d:"FRIDAY",s:"Cosmic Meadow",g:"Deep House"},
-  {n:"DJ Tennis b2b Chloé Caillet",d:"FRIDAY",s:"Neon Garden",g:"House / Techno"},
+  {n:"MEDUZAÂ³",d:"FRIDAY",s:"Cosmic Meadow",g:"Deep House"},
+  {n:"DJ Tennis b2b ChlÃ© Caillet b2d:"FRIDAY",s:"Neon Garden",g:"House / Techno"},
   {n:"Culture Shock",d:"FRIDAY",s:"Basspod",g:"Drum and Bass"},
-  {n:"DØM1NA",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
+  {n:"DÃM1NA",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
   {n:"Darren Porter",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
   {n:"Luke Dean",d:"FRIDAY",s:"Stereobloom",g:"House"},
   {n:"Massimiliano Pagliara",d:"FRIDAY",s:"Bionic Jungle",g:"Italo Disco"},
@@ -577,7 +556,7 @@ const SEED_DJS = [
   {n:"Levity",d:"FRIDAY",s:"Circuit Grounds",g:"Dubstep"},
   {n:"Notion",d:"FRIDAY",s:"Cosmic Meadow",g:"Bassline"},
   {n:"Joseph Capriati",d:"FRIDAY",s:"Neon Garden",g:"Techno"},
-  {n:"Deathpact ∞ Deathpact",d:"FRIDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"Deathpact â Deathpact",d:"FRIDAY",s:"Basspod",g:"Bass / Dubstep"},
   {n:"GRAVEDGR",d:"FRIDAY",s:"Wasteland",g:"Hard Techno"},
   {n:"Gareth Emery",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
   {n:"Max Dean",d:"FRIDAY",s:"Stereobloom",g:"House"},
@@ -585,12 +564,12 @@ const SEED_DJS = [
   {n:"Korolova",d:"FRIDAY",s:"Kinetic Field",g:"Melodic Techno"},
   {n:"Nico Moreno",d:"FRIDAY",s:"Circuit Grounds",g:"Hard Techno"},
   {n:"Roddy Lima",d:"FRIDAY",s:"Cosmic Meadow",g:"Tech House"},
-  {n:"Mëstiza",d:"FRIDAY",s:"Neon Garden",g:"Latin House"},
+  {n:"MÃ«stiza",d:"FRIDAY",s:"Neon Garden",g:"Latin House"},
   {n:"Ghengar",d:"FRIDAY",s:"Basspod",g:"Dubstep"},
   {n:"Johannes Schuster",d:"FRIDAY",s:"Wasteland",g:"Hard Dance"},
   {n:"Ilan Bluestone",d:"FRIDAY",s:"Quantum Valley",g:"Trance"},
-  {n:"Obskür",d:"FRIDAY",s:"Stereobloom",g:"Rally House"},
-  {n:"Salute b2b Chloé Caillet",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
+  {n:"ObskÃ¼r",d:"FRIDAY",s:"Stereobloom",g:"Rally House"},
+  {n:"Salute b2b ChloÃ© Caillet",d:"FRIDAY",s:"Bionic Jungle",g:"Underground House"},
   {n:"Laidback Luke b2b Chuckie",d:"FRIDAY",s:"Kinetic Field",g:"Main Stage"},
   {n:"Ray Volpe",d:"FRIDAY",s:"Circuit Grounds",g:"Dubstep"},
   {n:"San Pacho",d:"FRIDAY",s:"Cosmic Meadow",g:"Latin House"},
@@ -666,7 +645,7 @@ const SEED_DJS = [
   {n:"HNTR",d:"SATURDAY",s:"Stereobloom",g:"Tech House"},
   {n:"Club Angel",d:"SATURDAY",s:"Bionic Jungle",g:"UK Garage"},
   {n:"Kaskade",d:"SATURDAY",s:"Kinetic Field",g:"EDM"},
-  {n:"RØZ",d:"SATURDAY",s:"Circuit Grounds",g:"Bass / Future Bass"},
+  {n:"RÃZ",d:"SATURDAY",s:"Circuit Grounds",g:"Bass / Future Bass"},
   {n:"Malugi",d:"SATURDAY",s:"Cosmic Meadow",g:"Hard House"},
   {n:"Silvie Loto",d:"SATURDAY",s:"Neon Garden",g:"Tech House"},
   {n:"Getter",d:"SATURDAY",s:"Basspod",g:"Dubstep"},
@@ -683,7 +662,7 @@ const SEED_DJS = [
   {n:"OMNOM",d:"SATURDAY",s:"Stereobloom",g:"Bass House"},
   {n:"MCR-T",d:"SATURDAY",s:"Bionic Jungle",g:"Miami Bass"},
   {n:"Sub Focus",d:"SATURDAY",s:"Kinetic Field",g:"Drum and Bass"},
-  {n:"Tiësto",d:"SATURDAY",s:"Circuit Grounds",g:"EDM"},
+  {n:"TiÃ«sto",d:"SATURDAY",s:"Circuit Grounds",g:"EDM"},
   {n:"The Prodigy",d:"SATURDAY",s:"Cosmic Meadow",g:"Big Beat"},
   {n:"Hybrid Minds",d:"SATURDAY",s:"Basspod",g:"Liquid Funk"},
   {n:"Mish",d:"SATURDAY",s:"Wasteland",g:"Hardstyle"},
@@ -714,7 +693,7 @@ const SEED_DJS = [
   {n:"Beltran",d:"SUNDAY",s:"Circuit Grounds",g:"Tech House"},
   {n:"Black Tiger Sex Machine",d:"SUNDAY",s:"Cosmic Meadow",g:"Dubstep"},
   {n:"Adiel",d:"SUNDAY",s:"Neon Garden",g:"Dub Techno"},
-  {n:"ÆON:MODE (Sunrise Set)",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
+  {n:"ÃON:MODE (Sunrise Set)",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
   {n:"DJ Isaac",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
   {n:"Cristoph",d:"SUNDAY",s:"Quantum Valley",g:"Melodic Techno"},
   {n:"Hamdi",d:"SUNDAY",s:"Stereobloom",g:"UK Garage"},
@@ -753,7 +732,7 @@ const SEED_DJS = [
   {n:"Infekt b2b Samplifire",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
   {n:"Sub Zero Project",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
   {n:"Massano",d:"SUNDAY",s:"Quantum Valley",g:"Melodic Techno"},
-  {n:"Murphy’s Law",d:"SUNDAY",s:"Stereobloom",g:"Tech House"},
+  {n:"Murphyâs Law",d:"SUNDAY",s:"Stereobloom",g:"Tech House"},
   {n:"Tiga",d:"SUNDAY",s:"Bionic Jungle",g:"Electroclash"},
   {n:"Ship Wrek",d:"SUNDAY",s:"Kinetic Field",g:"Stutter House"},
   {n:"Vintage Culture",d:"SUNDAY",s:"Circuit Grounds",g:"Brazilian Bass"},
@@ -761,7 +740,7 @@ const SEED_DJS = [
   {n:"Klangkuenstler",d:"SUNDAY",s:"Neon Garden",g:"Hard Techno"},
   {n:"Nightstalker with MC Dino",d:"SUNDAY",s:"Basspod",g:"Bass / Dubstep"},
   {n:"The Purge",d:"SUNDAY",s:"Wasteland",g:"Hardstyle"},
-  {n:"Rebūke",d:"SUNDAY",s:"Quantum Valley",g:"Trance"},
+  {n:"RebÅ«ke",d:"SUNDAY",s:"Quantum Valley",g:"Trance"},
   {n:"Sidney Charles b2b Bushbaby",d:"SUNDAY",s:"Stereobloom",g:"Tech House"},
   {n:"Trace",d:"SUNDAY",s:"Kinetic Field",g:"Tech House"},
   {n:"Seven Lions",d:"SUNDAY",s:"Cosmic Meadow",g:"Melodic Bass"},
@@ -803,7 +782,7 @@ function loadState(){
     points: 0, history: [],
   }));
   const s = { djs, ballots: 0, lastSnapshot: {}, lastBallot: null };
-  // Online variant: NO synthetic ballots — live human votes only.
+  // Online variant: NO synthetic ballots â live human votes only.
   saveState(s);
   return s;
 }
@@ -910,7 +889,7 @@ function renderFilters(){
     const parts = [];
     if(filterDay !== 'ALL') parts.push(filterDay);
     if(filterStage !== 'ALL') parts.push(filterStage);
-    document.getElementById('scopeName').textContent = parts.join(' · ');
+    document.getElementById('scopeName').textContent = parts.join(' Â· ');
   } else {
     banner.style.display = 'none';
   }
@@ -925,7 +904,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function renderGrid(){
   const grid = document.getElementById('grid');
   const visible = scopedSet();
-  const sorted = [...visible].sort((a,b)=> pctOf(b)-pctOf(a));
+  const sorted = [...visible].sort((a,b)=> (pctOf(b)-pctOf(a)) || a.name.localeCompare(b.name));
   const ballotIds = new Set([
     ...(state.lastBallot?.top5||[]),
     ...(state.lastBallot?.top10||[]),
@@ -944,7 +923,7 @@ function renderGrid(){
       const rank = (state.lastBallot.top5.indexOf(d.id))>=0
         ? `#${state.lastBallot.top5.indexOf(d.id)+1}`
         : `#${state.lastBallot.top10.indexOf(d.id)+6}`;
-      tags.push(`<span class="tag ballot">◆ YOUR ${rank}</span>`);
+      tags.push(`<span class="tag ballot">â YOUR ${rank}</span>`);
     }
     const barCap = (filterStage==='ALL'&&filterDay==='ALL') ? pct*3 : pct;
     card.innerHTML = `
@@ -953,7 +932,7 @@ function renderGrid(){
       <div class="genre">${escapeHtml(d.genre||'')}</div>
       <div class="pct-row">
         <div class="pct">${fmtPct(pct)}</div>
-        <div class="chg ${chgClass}">${chg>=0?'▲':'▼'} ${fmtChg(chg).replace('+','').replace('-','')}</div>
+        <div class="chg ${chgClass}">${chg>=0?'â²':'â¼'} ${fmtChg(chg).replace('+','').replace('-','')}</div>
       </div>
       <div class="bar"><i style="width:${Math.min(100, barCap)}%"></i></div>
       ${sparklineSvg(d.history)}
@@ -964,8 +943,8 @@ function renderGrid(){
   });
   const total = state.djs.length;
   const scopeHint = (filterStage==='ALL'&&filterDay==='ALL')
-    ? `${total} artists · click card for history`
-    : `${visible.length} of ${total} shown · stage-relative %`;
+    ? `${total} artists Â· click card for history`
+    : `${visible.length} of ${total} shown Â· stage-relative %`;
   document.getElementById('gridCount').textContent = scopeHint;
 }
 
@@ -1002,7 +981,7 @@ function sparklineSvg(history){
 function renderLeaderboard(){
   const el = document.getElementById('leaderboard');
   const pool = scopedSet();
-  const sorted = [...pool].sort((a,b)=>pctOf(b)-pctOf(a)).slice(0,10);
+  const sorted = [...pool].sort((a,b)=> (pctOf(b)-pctOf(a)) || a.name.localeCompare(b.name)).slice(0,10);
   el.innerHTML = sorted.map((d,i)=>{
     const chg = chgOf(d);
     const chgClass = chg>0.01?'up':chg<-0.01?'down':'flat';
@@ -1011,20 +990,20 @@ function renderLeaderboard(){
       <div class="r">${i+1}</div>
       <div class="n">${escapeHtml(d.name)}</div>
       <div class="p">${fmtPct(pctOf(d))}</div>
-      <div class="c ${chgClass}">${chg>=0?'▲':'▼'}${Math.abs(chg).toFixed(2)}</div>
+      <div class="c ${chgClass}">${chg>=0?'â²':'â¼'}${Math.abs(chg).toFixed(2)}</div>
     </div>`;
   }).join('');
 }
 function renderMovers(){
   const el = document.getElementById('movers');
   const withChg = state.djs.map(d=>({d, chg:chgOf(d)})).filter(x=>Math.abs(x.chg)>0.001);
-  const gainers = [...withChg].sort((a,b)=>b.chg-a.chg).slice(0,3);
-  const losers  = [...withChg].sort((a,b)=>a.chg-b.chg).slice(0,3);
+  const gainers = [...withChg].sort((a,b)=> (b.chg-a.chg) || a.d.name.localeCompare(b.d.name)).slice(0,3);
+  const losers  = [...withChg].sort((a,b)=> (a.chg-b.chg) || a.d.name.localeCompare(b.d.name)).slice(0,3);
   el.innerHTML = '';
   gainers.forEach(x=>{
     const row = document.createElement('div');
     row.className = 'mover up';
-    row.innerHTML = `<div><div class="ml">${escapeHtml(x.d.name)}</div><div class="ms">${fmtPct(globalPctOf(x.d))}</div></div><div class="mr">▲ ${fmtChg(x.chg).replace('+','')}</div>`;
+    row.innerHTML = `<div><div class="ml">${escapeHtml(x.d.name)}</div><div class="ms">${fmtPct(globalPctOf(x.d))}</div></div><div class="mr">â² ${fmtChg(x.chg).replace('+','')}</div>`;
     el.appendChild(row);
   });
   const sep = document.createElement('div');
@@ -1034,7 +1013,7 @@ function renderMovers(){
     if(x.chg>=0) return;
     const row = document.createElement('div');
     row.className = 'mover down';
-    row.innerHTML = `<div><div class="ml">${escapeHtml(x.d.name)}</div><div class="ms">${fmtPct(globalPctOf(x.d))}</div></div><div class="mr">▼ ${fmtChg(x.chg).replace('-','')}</div>`;
+    row.innerHTML = `<div><div class="ml">${escapeHtml(x.d.name)}</div><div class="ms">${fmtPct(globalPctOf(x.d))}</div></div><div class="mr">â¼ ${fmtChg(x.chg).replace('-','')}</div>`;
     el.appendChild(row);
   });
   if(!el.children.length){
@@ -1046,7 +1025,7 @@ function renderStats(){
   document.getElementById('totalBallots').textContent = state.ballots.toLocaleString();
   document.getElementById('artistCount').textContent = state.djs.length;
   const top = [...state.djs].sort((a,b)=>globalPctOf(b)-globalPctOf(a))[0];
-  document.getElementById('topContender').textContent = top ? top.name : '—';
+  document.getElementById('topContender').textContent = top ? top.name : 'â';
 }
 function renderTicker(){
   const el = document.getElementById('ticker');
@@ -1054,7 +1033,7 @@ function renderTicker(){
   const build = () => items.map(d=>{
     const chg = chgOf(d);
     const cls = chg>0.01?'up':chg<-0.01?'down':'';
-    const arrow = chg>0.01?'▲':chg<-0.01?'▼':'◆';
+    const arrow = chg>0.01?'â²':chg<-0.01?'â¼':'â';
     return `<span><b>${escapeHtml(d.name.toUpperCase())}</b> ${fmtPct(globalPctOf(d))} <span class="${cls}">${arrow} ${fmtChg(chg)}</span></span>`;
   }).join('');
   el.innerHTML = build() + build();
@@ -1110,73 +1089,121 @@ ballotModal.addEventListener('click', e=>{ if(e.target===ballotModal) closeBallo
 function renderBallot(){
   const t5 = document.getElementById('t5slots');
   const t10 = document.getElementById('t10slots');
-  t5.innerHTML = Array.from({length:5}).map((_,i)=>{
-    const id = ballot.top5[i];
-    const dj = id ? state.djs.find(d=>d.id===id) : null;
-    return `<div class="slot ${dj?'filled':''}">
-      <div class="sr">${i+1}</div>
-      <div class="sn">${dj?escapeHtml(dj.name):'<span style="color:var(--ink2); font-weight:500">— empty —</span>'}</div>
-      ${dj?`<button data-rm-top5="${i}">✕</button>`:''}
-    </div>`;
-  }).join('');
-  t10.innerHTML = Array.from({length:5}).map((_,i)=>{
-    const id = ballot.top10[i];
-    const dj = id ? state.djs.find(d=>d.id===id) : null;
-    return `<div class="slot ${dj?'filled':''}">
-      <div class="sr">${i+6}</div>
-      <div class="sn">${dj?escapeHtml(dj.name):'<span style="color:var(--ink2); font-weight:500">— empty —</span>'}</div>
-      ${dj?`<button data-rm-top10="${i}">✕</button>`:''}
-    </div>`;
-  }).join('');
 
-  t5.querySelectorAll('[data-rm-top5]').forEach(b=>b.addEventListener('click',e=>{
-    ballot.top5.splice(parseInt(e.currentTarget.dataset.rmTop5),1);
-    renderBallot();
-  }));
-  t10.querySelectorAll('[data-rm-top10]').forEach(b=>b.addEventListener('click',e=>{
-    ballot.top10.splice(parseInt(e.currentTarget.dataset.rmTop10),1);
-    renderBallot();
-  }));
+  const slotHtml = (id, rank) => {
+    const dj = state.djs.find(d=>d.id===id);
+    if(!dj) return '';
+    return `<li class="slot" draggable="true" data-id="${dj.id}" data-rank="${rank}">
+      <div class="sr">${rank}</div>
+      <div class="sn">${escapeHtml(dj.name)}</div>
+      <div class="handle">â ¿</div>
+    </li>`;
+  };
+  t5.innerHTML  = ballot.top5.map((id,i)=> slotHtml(id, i+1)).join('');
+  t10.innerHTML = ballot.top10.map((id,i)=> slotHtml(id, i+6)).join('');
 
   const q = (document.getElementById('djSearch').value||'').toLowerCase();
   const used = new Set([...ballot.top5, ...ballot.top10]);
   const chips = document.getElementById('djChips');
+  const byPop = (a,b)=> (pctOf(b)-pctOf(a)) || a.name.localeCompare(b.name);
   chips.innerHTML = state.djs
+    .filter(d=> !used.has(d.id))
     .filter(d=> !q || d.name.toLowerCase().includes(q) || (d.genre||'').toLowerCase().includes(q) || (d.stage||'').toLowerCase().includes(q))
-    .sort((a,b)=>a.name.localeCompare(b.name))
+    .sort(byPop)
     .map(d=>{
       const dayShort = d.day ? d.day.slice(0,3) : '';
-      return `<div class="chip ${used.has(d.id)?'used':''}" data-id="${d.id}">${escapeHtml(d.name)}${dayShort?`<span class="cday">${dayShort}</span>`:''}</div>`;
+      return `<div class="chip" draggable="true" data-id="${d.id}">${escapeHtml(d.name)}${dayShort?`<span class="cday">${dayShort}</span>`:''}</div>`;
     }).join('');
-  chips.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',e=>{
-    if(c.classList.contains('used')) return;
-    const id = c.dataset.id;
-    if(ballot.top5.length<5){ ballot.top5.push(id) }
-    else if(ballot.top10.length<5){ ballot.top10.push(id) }
-    renderBallot();
-  }));
+
+  wireBallotDnd();
 
   const n = ballot.top5.length + ballot.top10.length;
   document.getElementById('t5status').textContent = `${ballot.top5.length} / 5`;
   document.getElementById('t10status').textContent = `${ballot.top10.length} / 5`;
   const status = document.getElementById('ballotStatus');
-  if(n===0) status.innerHTML = 'Fill at least 1 slot to submit.';
+  if(n===0) status.innerHTML = 'Drag at least 1 DJ into a zone to submit.';
   else status.innerHTML = `Ready: <b>${n}</b> pick${n>1?'s':''} selected.`;
+}
+
+// ---- BALLOT DRAG & DROP ----
+let dndCurrent = null; // { id, from: 'pool' | 'top5' | 'top10', idx }
+
+function wireBallotDnd(){
+  // Make pool chips draggable
+  document.querySelectorAll('#djChips .chip').forEach(chip=>{
+    chip.addEventListener('dragstart', e=>{
+      dndCurrent = { id: chip.dataset.id, from: 'pool' };
+      chip.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      try{ e.dataTransfer.setData('text/plain', chip.dataset.id) }catch(_){}
+    });
+    chip.addEventListener('dragend', ()=> chip.classList.remove('dragging'));
+  });
+  // Make slot items draggable
+  ['t5slots','t10slots'].forEach(listId=>{
+    const list = document.getElementById(listId);
+    const zoneKey = listId==='t5slots'?'top5':'top10';
+    list.querySelectorAll('.slot').forEach((slot, idx)=>{
+      slot.addEventListener('dragstart', e=>{
+        dndCurrent = { id: slot.dataset.id, from: zoneKey, idx };
+        slot.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try{ e.dataTransfer.setData('text/plain', slot.dataset.id) }catch(_){}
+      });
+      slot.addEventListener('dragend', ()=> slot.classList.remove('dragging'));
+    });
+  });
+
+  // Wire each zone
+  const zones = [
+    { el: document.getElementById('zoneTop5'), key: 'top5', list: document.getElementById('t5slots'), max: 5 },
+    { el: document.getElementById('zoneTop10'), key: 'top10', list: document.getElementById('t10slots'), max: 5 },
+    { el: document.getElementById('djChips'), key: 'pool', list: document.getElementById('djChips'), max: Infinity },
+  ];
+  zones.forEach(z=>{
+    z.el.ondragover = e=>{
+      if(!dndCurrent) return;
+      // reject adding to a full zone from elsewhere
+      if(z.key!=='pool' && dndCurrent.from!==z.key && ballot[z.key].length>=z.max) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      z.el.classList.add('drop-target');
+    };
+    z.el.ondragleave = e=>{
+      if(!z.el.contains(e.relatedTarget)) z.el.classList.remove('drop-target');
+    };
+    z.el.ondrop = e=>{
+      e.preventDefault();
+      z.el.classList.remove('drop-target');
+      if(!dndCurrent) return;
+      const { id, from } = dndCurrent;
+      // remove from source
+      if(from==='top5' || from==='top10') ballot[from] = ballot[from].filter(x=> x!==id);
+      // insert into target
+      if(z.key==='top5' || z.key==='top10'){
+        const arr = ballot[z.key];
+        const dropIdx = computeDropIndex(z.list, e.clientY);
+        if(arr.length >= z.max){ dndCurrent=null; renderBallot(); return; }
+        arr.splice(dropIdx, 0, id);
+      }
+      // pool drop = just remove from any zone (handled above)
+      dndCurrent = null;
+      renderBallot();
+    };
+  });
+}
+
+function computeDropIndex(listEl, clientY){
+  const children = Array.from(listEl.querySelectorAll('.slot:not(.dragging)'));
+  for(let i=0;i<children.length;i++){
+    const r = children[i].getBoundingClientRect();
+    if(clientY < r.top + r.height/2) return i;
+  }
+  return children.length;
 }
 
 document.getElementById('djSearch').addEventListener('input', renderBallot);
 document.getElementById('clearBallot').addEventListener('click', ()=>{ ballot={top5:[],top10:[]}; renderBallot() });
-document.getElementById('addDjBtn').addEventListener('click', ()=>{
-  const v = document.getElementById('newDj').value.trim();
-  if(!v) return;
-  const id = slug(v);
-  if(state.djs.find(d=>d.id===id)){ alert('Already on the board'); return }
-  state.djs.push({id, name:v, genre:'User added', day:null, stage:null, points:0, history:[]});
-  document.getElementById('newDj').value='';
-  saveState();
-  renderBallot();
-  renderAll();
-});
 
 document.getElementById('submitBallot').addEventListener('click', ()=>{
   const n = ballot.top5.length + ballot.top10.length;
@@ -1198,83 +1225,6 @@ document.getElementById('submitBallot').addEventListener('click', ()=>{
   setTimeout(()=> openMyBallot(), 650);
 });
 
-// ---- IMPORT ----
-const importModal = document.getElementById('importModal');
-document.getElementById('openImport').addEventListener('click', ()=>{
-  importModal.classList.add('show');
-  document.getElementById('importStatus').textContent = 'Paste a list to preview.';
-});
-document.getElementById('closeImport').addEventListener('click', ()=> importModal.classList.remove('show'));
-importModal.addEventListener('click', e=>{ if(e.target===importModal) importModal.classList.remove('show') });
-
-function parseLineup(text){
-  const lines = text.split(/\r?\n/);
-  const out = [];
-  let currentStageGenre = null;
-  const seen = new Set();
-  for(let raw of lines){
-    const line = raw.trim();
-    if(!line) continue;
-    if(/^[^—|]+:$/.test(line)){
-      currentStageGenre = line.replace(/:$/,'').trim();
-      continue;
-    }
-    let name, genre = null;
-    const splitMatch = line.match(/^(.+?)\s*(?:—|–| - |\||,)\s*(.+)$/);
-    if(splitMatch){ name = splitMatch[1].trim(); genre = splitMatch[2].trim(); }
-    else { name = line; }
-    name = name.replace(/^[\s•*\-–—·]+/,'').replace(/^\d+[\).]\s*/,'').trim();
-    if(!name) continue;
-    const key = name.toLowerCase();
-    if(seen.has(key)) continue;
-    seen.add(key);
-    out.push({ name, genre: genre || currentStageGenre || '' });
-  }
-  return out;
-}
-
-document.getElementById('previewImport').addEventListener('click', ()=>{
-  const text = document.getElementById('importText').value;
-  const parsed = parseLineup(text);
-  const mode = document.querySelector('input[name="importMode"]:checked').value;
-  const existing = new Set(state.djs.map(d=>d.name.toLowerCase()));
-  const newOnes = parsed.filter(p=>!existing.has(p.name.toLowerCase()));
-  document.getElementById('importStatus').innerHTML =
-    `Parsed <b>${parsed.length}</b> · ` +
-    (mode==='replace' ? `Will <b>replace</b> lineup with ${parsed.length} DJs.`
-                      : `Will add <b>${newOnes.length}</b> new (${parsed.length-newOnes.length} already on board).`);
-});
-
-document.getElementById('submitImport').addEventListener('click', ()=>{
-  const text = document.getElementById('importText').value;
-  const parsed = parseLineup(text);
-  if(parsed.length===0){
-    document.getElementById('importStatus').textContent = 'Nothing to import — paste at least one DJ.';
-    return;
-  }
-  const mode = document.querySelector('input[name="importMode"]:checked').value;
-  if(mode==='replace'){
-    if(!confirm(`Replace the current lineup with ${parsed.length} DJs? All existing votes will be cleared.`)) return;
-    state = {
-      djs: parsed.map(p=>({ id: slug(p.name), name: p.name, genre: p.genre, day:null, stage:null, points: 0, history: [] })),
-      ballots: 0, lastSnapshot: {}, lastBallot: null,
-    };
-    primeSyntheticBallots(state, 12);
-  } else {
-    const existing = new Set(state.djs.map(d=>d.id));
-    parsed.forEach(p=>{
-      const id = slug(p.name);
-      if(existing.has(id)) return;
-      state.djs.push({ id, name: p.name, genre: p.genre, day:null, stage:null, points: 0, history: [] });
-    });
-    snapshotHistory();
-  }
-  saveState();
-  importModal.classList.remove('show');
-  fireConfetti();
-  renderAll();
-});
-
 // ---- DETAIL ----
 const detailModal = document.getElementById('detailModal');
 document.getElementById('closeDetail').addEventListener('click', ()=> detailModal.classList.remove('show'));
@@ -1286,13 +1236,13 @@ function openDetail(d){
   if(d.day) subparts.push(d.day);
   if(d.stage) subparts.push(d.stage);
   if(d.genre) subparts.push(d.genre);
-  document.getElementById('detailGenre').textContent = subparts.join(' · ');
+  document.getElementById('detailGenre').textContent = subparts.join(' Â· ');
   document.getElementById('detailPct').textContent = fmtPct(pctOf(d));
   const chg = chgOf(d);
   const chgEl = document.getElementById('detailChg');
-  chgEl.textContent = (chg>=0?'▲ +':'▼ ')+chg.toFixed(2)+'%';
+  chgEl.textContent = (chg>=0?'â² +':'â¼ ')+chg.toFixed(2)+'%';
   chgEl.className = 'chg ' + (chg>0.01?'up':chg<-0.01?'down':'flat');
-  document.getElementById('detailVotes').textContent = `${d.points.toFixed(0)} POINTS · ${d.history.length} SNAPSHOTS`;
+  document.getElementById('detailVotes').textContent = `${d.points.toFixed(0)} POINTS Â· ${d.history.length} SNAPSHOTS`;
   drawDetailChart(d);
   detailModal.classList.add('show');
 }
@@ -1301,7 +1251,7 @@ function drawDetailChart(d){
   svg.innerHTML = '';
   const W=800, H=260, PAD=24;
   if(d.history.length<2){
-    svg.innerHTML = `<text x="400" y="130" text-anchor="middle" fill="#a99dc8" font-size="14">No history yet — cast ballots to populate.</text>`;
+    svg.innerHTML = `<text x="400" y="130" text-anchor="middle" fill="#a99dc8" font-size="14">No history yet â cast ballots to populate.</text>`;
     return;
   }
   const pts = d.history;
@@ -1350,11 +1300,11 @@ function openMyBallot(){
   const lb = state.lastBallot;
   const djMap = Object.fromEntries(state.djs.map(d=>[d.id,d]));
   const meta = new Date(lb.at).toLocaleString();
-  document.getElementById('mbMeta').innerHTML = `Cast <b>${meta}</b> · ${lb.top5.length + lb.top10.length} picks`;
+  document.getElementById('mbMeta').innerHTML = `Cast <b>${meta}</b> Â· ${lb.top5.length + lb.top10.length} picks`;
   const fmt = (ids, startRank) => ids.map((id,i)=>{
     const d = djMap[id];
     if(!d) return '';
-    const meta = [d.day?d.day.slice(0,3):'', d.stage||''].filter(Boolean).join(' · ');
+    const meta = [d.day?d.day.slice(0,3):'', d.stage||''].filter(Boolean).join(' Â· ');
     return `<li><span class="num">${startRank+i}</span><span>${escapeHtml(d.name)}</span><span class="meta">${escapeHtml(meta)}</span></li>`;
   }).join('');
   document.getElementById('mbTop5').innerHTML = fmt(lb.top5, 1);
@@ -1419,7 +1369,7 @@ function renderBallotCanvas(){
 
   ctx.fillStyle = '#a99dc8';
   ctx.font = '700 26px -apple-system, system-ui, sans-serif';
-  ctx.fillText('MAY 15–17  ·  LAS VEGAS MOTOR SPEEDWAY', W/2, 330);
+  ctx.fillText('MAY 15â17  Â·  LAS VEGAS MOTOR SPEEDWAY', W/2, 330);
 
   // Divider
   const divGrad = ctx.createLinearGradient(W*0.1, 0, W*0.9, 0);
@@ -1464,7 +1414,7 @@ function renderBallotCanvas(){
       // meta
       ctx.fillStyle = '#a99dc8';
       ctx.font = '700 22px -apple-system, system-ui, sans-serif';
-      const meta = [dj.day?dj.day.slice(0,3):'', dj.stage||'', dj.genre||''].filter(Boolean).join(' · ');
+      const meta = [dj.day?dj.day.slice(0,3):'', dj.stage||'', dj.genre||''].filter(Boolean).join(' Â· ');
       ctx.fillText(truncateText(ctx, meta, nameMax), 220, y+82);
     });
     return y0 + 40 + ids.length*rowH + 30;
@@ -1472,17 +1422,17 @@ function renderBallotCanvas(){
 
   let y = 470;
   if(lb.top5.length){
-    y = drawSection(y, '◆ TOP 5', '#ff2bd6', lb.top5, 1, '#ff2bd6', '33');
+    y = drawSection(y, 'â TOP 5', '#ff2bd6', lb.top5, 1, '#ff2bd6', '33');
   }
   if(lb.top10.length){
-    y = drawSection(y+10, '◇ RANKS 6–10', '#00e5ff', lb.top10, 6, '#00e5ff', '22');
+    y = drawSection(y+10, 'â RANKS 6â10', '#00e5ff', lb.top10, 6, '#00e5ff', '22');
   }
 
   // Footer
   ctx.textAlign = 'center';
   ctx.fillStyle = '#a99dc8';
   ctx.font = '700 24px -apple-system, system-ui, sans-serif';
-  ctx.fillText('EDC LV 2026 · HYPE MARKET', W/2, H-120);
+  ctx.fillText('EDC LV 2026 Â· HYPE MARKET', W/2, H-120);
   ctx.fillStyle = '#5feaff';
   ctx.font = '800 26px -apple-system, system-ui, sans-serif';
   ctx.fillText(new Date(lb.at).toLocaleDateString(), W/2, H-80);
@@ -1504,9 +1454,9 @@ function truncateText(ctx, text, maxW){
   let lo=1, hi=text.length;
   while(lo<hi){
     const mid = Math.floor((lo+hi)/2);
-    if(ctx.measureText(text.slice(0,mid)+'…').width <= maxW) lo=mid+1; else hi=mid;
+    if(ctx.measureText(text.slice(0,mid)+'â¦').width <= maxW) lo=mid+1; else hi=mid;
   }
-  return text.slice(0, Math.max(1, lo-1))+'…';
+  return text.slice(0, Math.max(1, lo-1))+'â¦';
 }
 
 // ---- CONFETTI ----
@@ -1551,10 +1501,10 @@ function crowdTick(){
 
 renderAll();
 setInterval(renderCountdown, 30*1000);
-// Online variant: no synthetic crowd ticks — realtime from Supabase instead.
+// Online variant: no synthetic crowd ticks â realtime from Supabase instead.
 
 /* =====================================================================
-   ONLINE LAYER — Supabase auth + realtime ballot sync
+   ONLINE LAYER â Supabase auth + realtime ballot sync
    ===================================================================== */
 
 function recomputeFromRemote(){
@@ -1598,8 +1548,8 @@ function updateVotersChip(){
   const el = document.getElementById('votersChip');
   if(!el) return;
   const count = remoteBallots.length;
-  const names = remoteBallots.slice(-5).map(b => remoteProfiles[b.user_id] || '…').join(' · ');
-  el.innerHTML = `<b>${count}</b> LIVE BALLOT${count===1?'':'S'}` + (names ? `<span style="opacity:.65"> · ${names}</span>` : '');
+  const names = remoteBallots.slice(-5).map(b => remoteProfiles[b.user_id] || 'â¦').join(' Â· ');
+  el.innerHTML = `<b>${count}</b> LIVE BALLOT${count===1?'':'S'}` + (names ? `<span style="opacity:.65"> Â· ${names}</span>` : '');
 }
 
 function subscribeRealtime(){
@@ -1636,7 +1586,7 @@ function hideAuthOverlay(){ document.getElementById('authOverlay').classList.rem
 
 async function setHandle(handle){
   handle = (handle || '').trim().slice(0, 24);
-  if(handle.length < 2){ alert('Pick a handle (2–24 chars)'); return false; }
+  if(handle.length < 2){ alert('Pick a handle (2â24 chars)'); return false; }
   const { error } = await sb.from('edc_profiles').upsert({ id: me.id, handle }, { onConflict: 'id' });
   if(error){ alert('Could not save handle: ' + error.message); return false; }
   myHandle = handle;
@@ -1692,7 +1642,7 @@ document.getElementById('authHandle').addEventListener('keydown', async e=>{
   }
 });
 document.getElementById('changeHandleBtn').addEventListener('click', ()=>{
-  if(!sb || !me){ alert('Still connecting…'); return; }
+  if(!sb || !me){ alert('Still connectingâ¦'); return; }
   showAuthOverlay(myHandle);
 });
 
@@ -1707,17 +1657,17 @@ _newSubmitBtn.addEventListener('click', async ()=>{
     alert('Online mode not configured. Open the file and paste your Supabase URL + anon key at the top of the <script> tag.');
     return;
   }
-  if(!me){ alert('Still connecting to the market…'); return; }
+  if(!me){ alert('Still connecting to the marketâ¦'); return; }
   if(!myHandle){ showAuthOverlay(); return; }
   _newSubmitBtn.disabled = true;
-  _newSubmitBtn.textContent = '▸ SENDING…';
+  _newSubmitBtn.textContent = 'â¸ SENDINGâ¦';
   const { error } = await sb.from('edc_ballots').upsert({
     user_id: me.id,
     top5:  [...ballot.top5],
     top10: [...ballot.top10],
   }, { onConflict: 'user_id' });
   _newSubmitBtn.disabled = false;
-  _newSubmitBtn.textContent = '▸ SUBMIT';
+  _newSubmitBtn.textContent = 'â¸ SUBMIT';
   if(error){ alert('Could not cast ballot: ' + error.message); return; }
   closeBallot();
   fireConfetti();
@@ -1753,3 +1703,4 @@ initOnline();
 </script>
 </body>
 </html>
+
