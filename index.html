@@ -803,6 +803,20 @@ function primeSyntheticBallots(s, n){
 function snapshotHistory(s=state){
   const total = s.djs.reduce((a,d)=>a+d.points,0) || 1;
   const t = Date.now();
+  // Skip no-op snapshots. Supabase realtime echoes your own upserts back,
+  // causing a second recomputeFromRemote() ~100ms after submit with identical
+  // points. Without this guard, that echo pushes a duplicate history entry
+  // and lastSnapshot becomes the post-vote pct — wiping every ▲/▼ indicator
+  // back to 0 a blink after you cast.
+  if(s.djs.length && s.djs[0].history.length){
+    const unchanged = s.djs.every(d => {
+      const last = d.history[d.history.length-1];
+      if(!last) return false;
+      const curPct = (d.points/total)*100;
+      return Math.abs(last.pct - curPct) < 0.0001;
+    });
+    if(unchanged) return;
+  }
   s.djs.forEach(d=>{
     const pct = (d.points/total)*100;
     d.history.push({t, pct});
