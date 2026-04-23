@@ -169,6 +169,8 @@
   .tag.day-SUNDAY{background:rgba(0,229,255,0.15); color:#5feaff; border-color:rgba(0,229,255,0.3)}
   .tag.stage{background:rgba(54,255,139,0.08); color:#7cffbb; border-color:rgba(54,255,139,0.2)}
   .tag.ballot{background:var(--gain); color:#000; border-color:var(--gain); font-weight:800}
+  .tag.genre{background:rgba(157,75,255,0.14); color:#c29bff; border-color:rgba(157,75,255,0.3)}
+  .fchip.genre-chip.active{background:linear-gradient(135deg, var(--neon3), var(--neon))}
 
   /* sidebar panels */
   aside{display:flex; flex-direction:column; gap:20px;}
@@ -226,6 +228,12 @@
   .slot.dragging{opacity:0.4; transform:scale(0.98)}
   .slot .sr{width:24px; text-align:center; color:var(--neon); font-weight:800; font-variant-numeric:tabular-nums}
   .ballot-col.top10 .slot .sr{color:var(--neon2)}
+  /* MUST SEE — #1 slot gets a gold treatment so the stakes read instantly */
+  .slot.must-see{background:linear-gradient(90deg, rgba(255,208,75,0.22), rgba(255,43,214,0.18));
+    border-color:rgba(255,208,75,0.6); box-shadow:0 0 18px rgba(255,208,75,0.25);}
+  .slot.must-see .sr{color:#ffd04b; text-shadow:0 0 10px rgba(255,208,75,0.7)}
+  .slot.must-see .must-tag{font-size:8px; letter-spacing:1.5px; font-weight:900;
+    background:#ffd04b; color:#0a0520; padding:2px 6px; border-radius:3px; margin-left:6px;}
   .slot .sn{flex:1; font-weight:700; pointer-events:none}
   .slot .handle{color:var(--ink2); font-size:14px; opacity:0.5; pointer-events:none}
   .ballot-col.drop-target, .chips.drop-target{border-color:var(--neon); background:rgba(54,255,139,0.06)}
@@ -268,6 +276,14 @@
     -webkit-background-clip:text; background-clip:text; color:transparent;
     line-height:1; font-variant-numeric:tabular-nums;}
   .detail-chart{width:100%; height:260px; background:rgba(0,0,0,0.3); border-radius:12px; margin-top:10px}
+  .detail-preview{margin-top:16px; padding-top:16px; border-top:1px solid var(--border)}
+  .preview-head{display:flex; align-items:center; justify-content:space-between;
+    font-size:12px; letter-spacing:2px; color:var(--ink2); text-transform:uppercase;
+    font-weight:700; margin-bottom:10px;}
+  .preview-head span:first-child{color:var(--neon2)}
+  .yt-frame-wrap{position:relative; width:100%; padding-top:56.25%;
+    background:#000; border-radius:12px; overflow:hidden; border:1px solid var(--border);}
+  .yt-frame-wrap iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
 
   /* movers */
   .movers{display:flex; flex-direction:column; gap:8px}
@@ -293,6 +309,9 @@
   .mb-list.c2 li{background:rgba(0,229,255,0.08); border-color:rgba(0,229,255,0.3)}
   .mb-list li .num{font-size:18px; font-weight:900; color:var(--neon); min-width:28px}
   .mb-list.c2 li .num{color:var(--neon2)}
+  .mb-list li.must-see-li{background:linear-gradient(90deg, rgba(255,208,75,0.22), rgba(255,43,214,0.14));
+    border-color:rgba(255,208,75,0.6); box-shadow:0 0 18px rgba(255,208,75,0.25);}
+  .mb-list li.must-see-li .num{color:#ffd04b; text-shadow:0 0 8px rgba(255,208,75,0.7)}
   .mb-list li .meta{font-size:10px; color:var(--ink2); letter-spacing:1px; text-transform:uppercase; margin-left:auto}
 
   footer{position:relative; z-index:3; text-align:center; color:var(--ink2);
@@ -356,6 +375,7 @@
     <div id="filters">
       <div class="filter-row" id="dayFilters"></div>
       <div class="filter-row" id="stageFilters"></div>
+      <div class="filter-row" id="genreFilters"></div>
     </div>
     <div id="scopeBanner" style="display:none" class="scope-banner">
       <span>⟟ Stage-relative market — % normalized within <b id="scopeName"></b></span>
@@ -376,13 +396,13 @@
     <div class="panel">
       <div class="section-title" style="margin-top:0"><h2>♦ HOW IT WORKS</h2></div>
       <p style="font-size:12px; line-height:1.7; color:var(--ink2)">
-        Submit your <b style="color:var(--neon)">TOP 5</b> most-anticipated DJs (weighted heavily) and
-        <b style="color:var(--neon2)">NEXT 5</b> (ranks 6-10, lower weight).
-        Filter by stage to switch to a <b style="color:var(--neon2)">stage-relative</b> market.
+        Rank your <b style="color:#ffd04b">#1 MUST SEE</b> + 4 more in the <b style="color:var(--neon)">TOP 5</b>,
+        then <b style="color:var(--neon2)">RANKS 6–10</b>.
+        Filter by day, stage or genre for a <b style="color:var(--neon2)">scoped</b> market.
       </p>
       <p style="font-size:11px; margin-top:8px; color:var(--ink2)">
-        Rank weights: <code style="color:var(--neon2)">10·8·6·4·2</code> for top 5,
-        <code style="color:var(--neon2)">5·4·3·2·1</code> for ranks 6-10.
+        Rank weights: <code style="color:#ffd04b">15</code>·<code style="color:var(--neon2)">8·6·4·2</code> for top 5,
+        <code style="color:var(--neon2)">5·4·3·2·1</code> for ranks 6–10.
       </p>
     </div>
   </aside>
@@ -413,12 +433,12 @@
     <button class="modal-close" id="closeBallot">✕</button>
     <h3>CAST YOUR BALLOT</h3>
     <p class="ballot-help">
-      <b>Drag</b> DJs from the pool into <b>Top 5</b> (2× weight) or <b>Ranks 6–10</b>.
-      Drag to reorder inside a zone. Drag a slot back to the pool to remove.
+      <b>Drag</b> DJs into the <b>Top 5</b> zone — your <b style="color:#ffd04b">#1 is MUST SEE</b>
+      and worth almost 2× the #2 slot. Then fill <b>Ranks 6–10</b>. Drag inside a zone to reorder, drag back to remove.
     </p>
     <div class="ballot-cols">
       <div class="ballot-col top5" id="zoneTop5" data-zone="top5">
-        <h4><span>◆ TOP 5 (HIGH WEIGHT)</span><span id="t5status">0 / 5</span></h4>
+        <h4><span>★ MUST SEE + TOP 5</span><span id="t5status">0 / 5</span></h4>
         <ol class="zone-slots" id="t5slots"></ol>
       </div>
       <div class="ballot-col top10" id="zoneTop10" data-zone="top10">
@@ -459,6 +479,18 @@
       </div>
     </div>
     <svg class="detail-chart" id="detailChart" viewBox="0 0 800 260" preserveAspectRatio="none"></svg>
+    <div class="detail-preview">
+      <div class="preview-head">
+        <span>▶ LISTEN — YOUTUBE SEARCH</span>
+        <a id="detailYtLink" href="#" target="_blank" rel="noopener" class="btn-ghost" style="padding:5px 10px; font-size:10px; text-decoration:none">OPEN ON YT ↗</a>
+      </div>
+      <div class="yt-frame-wrap">
+        <iframe id="detailYt" title="YouTube preview" loading="lazy"
+          frameborder="0" allow="autoplay; encrypted-media; picture-in-picture"
+          referrerpolicy="origin"
+          allowfullscreen></iframe>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -766,6 +798,7 @@ let state = loadState();
 // active filter state (not persisted)
 let filterDay = 'ALL';
 let filterStage = 'ALL';
+let filterGenre = 'ALL';
 
 function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 
@@ -788,7 +821,9 @@ function loadState(){
 }
 function saveState(s=state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)) }
 
-const TOP5_W  = [10, 8, 6, 4, 2];
+// Rank #1 is a dedicated "MUST SEE" slot — weighted heavier than the rest
+// so calling your #1 pick has real stakes vs. just shuffling 2-5.
+const TOP5_W  = [15, 8, 6, 4, 2];
 const TOP10_W = [ 5, 4, 3, 2, 1];
 
 function primeSyntheticBallots(s, n){
@@ -831,30 +866,33 @@ function snapshotHistory(s=state){
 }
 
 // ---- SCOPE-AWARE PCT ----
-// If filterStage != 'ALL', pct is normalized within that stage's total.
-// filterDay also narrows scope for percentage calculation.
+// If any filter is active (day / stage / genre), pct is normalized within the scope.
+function anyFilterActive(){
+  return filterDay !== 'ALL' || filterStage !== 'ALL' || filterGenre !== 'ALL';
+}
+function matchesFilter(d){
+  if(filterDay !== 'ALL' && d.day !== filterDay) return false;
+  if(filterStage !== 'ALL' && d.stage !== filterStage) return false;
+  if(filterGenre !== 'ALL' && (d.genre||'') !== filterGenre) return false;
+  return true;
+}
 function scopedSet(){
-  return state.djs.filter(d => {
-    if(filterDay !== 'ALL' && d.day !== filterDay) return false;
-    if(filterStage !== 'ALL' && d.stage !== filterStage) return false;
-    return true;
-  });
+  return state.djs.filter(matchesFilter);
 }
 function scopeTotalPoints(){
-  if(filterDay === 'ALL' && filterStage === 'ALL'){
+  if(!anyFilterActive()){
     return state.djs.reduce((a,x)=>a+x.points,0) || 1;
   }
   return scopedSet().reduce((a,x)=>a+x.points,0) || 1;
 }
 function pctOf(d){
-  // Scoped when filter is active; global otherwise
-  if(filterDay === 'ALL' && filterStage === 'ALL'){
+  // Scoped when any filter is active; global otherwise
+  if(!anyFilterActive()){
     const total = state.djs.reduce((a,x)=>a+x.points,0) || 1;
     return (d.points/total)*100;
   }
   // Only artists matching filter are part of this scope; out-of-scope get 0
-  if(filterDay !== 'ALL' && d.day !== filterDay) return 0;
-  if(filterStage !== 'ALL' && d.stage !== filterStage) return 0;
+  if(!matchesFilter(d)) return 0;
   const total = scopeTotalPoints();
   return (d.points/total)*100;
 }
@@ -896,13 +934,28 @@ function renderFilters(){
     filterStage = e.currentTarget.dataset.stage; renderAll();
   }));
 
+  // Genre filter — derived from SEED_DJS and alphabetized
+  const genres = ['ALL', ...Array.from(new Set(state.djs.map(d=>d.genre).filter(Boolean))).sort()];
+  const genreRow = document.getElementById('genreFilters');
+  if(genreRow){
+    genreRow.innerHTML = '<div class="lbl">Genre</div>' + genres.map(g=>{
+      const lbl = g==='ALL'?'ALL GENRES':g.toUpperCase();
+      const cls = 'fchip genre-chip' + (filterGenre===g?' active':'');
+      return `<div class="${cls}" data-genre="${escapeAttr(g)}">${escapeHtml(lbl)}</div>`;
+    }).join('');
+    genreRow.querySelectorAll('[data-genre]').forEach(el=>el.addEventListener('click', e=>{
+      filterGenre = e.currentTarget.dataset.genre; renderAll();
+    }));
+  }
+
   // scope banner
   const banner = document.getElementById('scopeBanner');
-  if(filterStage !== 'ALL' || filterDay !== 'ALL'){
+  if(anyFilterActive()){
     banner.style.display = '';
     const parts = [];
     if(filterDay !== 'ALL') parts.push(filterDay);
     if(filterStage !== 'ALL') parts.push(filterStage);
+    if(filterGenre !== 'ALL') parts.push(filterGenre.toUpperCase());
     document.getElementById('scopeName').textContent = parts.join(' · ');
   } else {
     banner.style.display = 'none';
@@ -910,7 +963,7 @@ function renderFilters(){
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('clearScope').addEventListener('click', ()=>{
-    filterDay = 'ALL'; filterStage = 'ALL'; renderAll();
+    filterDay = 'ALL'; filterStage = 'ALL'; filterGenre = 'ALL'; renderAll();
   });
 });
 
@@ -930,16 +983,18 @@ function renderGrid(){
     const chgClass = chg>0.01?'up':chg<-0.01?'down':'flat';
     const card = document.createElement('div');
     card.className = 'card' + (ballotIds.has(d.id)?' in-ballot':'');
+    card.dataset.id = d.id;
     const tags = [];
     if(d.day) tags.push(`<span class="tag day-${d.day}">${d.day.slice(0,3)}</span>`);
     if(d.stage) tags.push(`<span class="tag stage">${escapeHtml(d.stage)}</span>`);
+    if(d.genre) tags.push(`<span class="tag genre">${escapeHtml(d.genre)}</span>`);
     if(ballotIds.has(d.id)){
       const rank = (state.lastBallot.top5.indexOf(d.id))>=0
         ? `#${state.lastBallot.top5.indexOf(d.id)+1}`
         : `#${state.lastBallot.top10.indexOf(d.id)+6}`;
       tags.push(`<span class="tag ballot">◆ YOUR ${rank}</span>`);
     }
-    const barCap = (filterStage==='ALL'&&filterDay==='ALL') ? pct*3 : pct;
+    const barCap = anyFilterActive() ? pct : pct*3;
     card.innerHTML = `
       <div class="rank">#${idx+1}</div>
       <div class="name">${escapeHtml(d.name)}</div>
@@ -956,9 +1011,9 @@ function renderGrid(){
     grid.appendChild(card);
   });
   const total = state.djs.length;
-  const scopeHint = (filterStage==='ALL'&&filterDay==='ALL')
+  const scopeHint = !anyFilterActive()
     ? `${total} artists · click card for history`
-    : `${visible.length} of ${total} shown · stage-relative %`;
+    : `${visible.length} of ${total} shown · scope-relative %`;
   document.getElementById('gridCount').textContent = scopeHint;
 }
 
@@ -1000,7 +1055,7 @@ function renderLeaderboard(){
     const chg = chgOf(d);
     const chgClass = chg>0.01?'up':chg<-0.01?'down':'flat';
     const badge = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    return `<div class="lb-row ${badge}">
+    return `<div class="lb-row ${badge}" data-id="${d.id}">
       <div class="r">${i+1}</div>
       <div class="n">${escapeHtml(d.name)}</div>
       <div class="p">${fmtPct(pctOf(d))}</div>
@@ -1107,9 +1162,11 @@ function renderBallot(){
   const slotHtml = (id, rank) => {
     const dj = state.djs.find(d=>d.id===id);
     if(!dj) return '';
-    return `<li class="slot" draggable="true" data-id="${dj.id}" data-rank="${rank}">
-      <div class="sr">${rank}</div>
-      <div class="sn">${escapeHtml(dj.name)}</div>
+    const cls = rank===1 ? 'slot must-see' : 'slot';
+    const tag = rank===1 ? '<span class="must-tag">MUST SEE</span>' : '';
+    return `<li class="${cls}" draggable="true" data-id="${dj.id}" data-rank="${rank}">
+      <div class="sr">${rank===1?'★':rank}</div>
+      <div class="sn">${escapeHtml(dj.name)}${tag}</div>
       <div class="handle">⠿</div>
     </li>`;
   };
@@ -1241,8 +1298,14 @@ document.getElementById('submitBallot').addEventListener('click', ()=>{
 
 // ---- DETAIL ----
 const detailModal = document.getElementById('detailModal');
-document.getElementById('closeDetail').addEventListener('click', ()=> detailModal.classList.remove('show'));
-detailModal.addEventListener('click', e=>{ if(e.target===detailModal) detailModal.classList.remove('show') });
+function closeDetailModal(){
+  detailModal.classList.remove('show');
+  // Kill the iframe src so audio stops playing in the background.
+  const yt = document.getElementById('detailYt');
+  if(yt) yt.src = 'about:blank';
+}
+document.getElementById('closeDetail').addEventListener('click', closeDetailModal);
+detailModal.addEventListener('click', e=>{ if(e.target===detailModal) closeDetailModal() });
 
 function openDetail(d){
   document.getElementById('detailName').textContent = d.name;
@@ -1258,6 +1321,17 @@ function openDetail(d){
   chgEl.className = 'chg ' + (chg>0.01?'up':chg<-0.01?'down':'flat');
   document.getElementById('detailVotes').textContent = `${d.points.toFixed(0)} POINTS · ${d.history.length} SNAPSHOTS`;
   drawDetailChart(d);
+
+  // YouTube search embed — pulls top result for "<artist> dj set" and plays
+  // it inline. nocookie domain + listType=search sidesteps the need for
+  // per-artist video IDs. Embeds disabled for some accounts will fall back
+  // gracefully (YT shows a "watch on YouTube" link).
+  const yt = document.getElementById('detailYt');
+  const ytLink = document.getElementById('detailYtLink');
+  const q = encodeURIComponent(d.name + ' dj set');
+  yt.src = `https://www.youtube-nocookie.com/embed?listType=search&list=${q}&modestbranding=1&rel=0`;
+  ytLink.href = `https://www.youtube.com/results?search_query=${q}`;
+
   detailModal.classList.add('show');
 }
 function drawDetailChart(d){
@@ -1318,8 +1392,12 @@ function openMyBallot(){
   const fmt = (ids, startRank) => ids.map((id,i)=>{
     const d = djMap[id];
     if(!d) return '';
+    const rank = startRank+i;
     const meta = [d.day?d.day.slice(0,3):'', d.stage||''].filter(Boolean).join(' · ');
-    return `<li><span class="num">${startRank+i}</span><span>${escapeHtml(d.name)}</span><span class="meta">${escapeHtml(meta)}</span></li>`;
+    const badge = rank===1 ? '<span class="must-tag" style="margin-left:8px">MUST SEE</span>' : '';
+    const liClass = rank===1 ? ' class="must-see-li"' : '';
+    const num = rank===1 ? '★' : rank;
+    return `<li${liClass}><span class="num">${num}</span><span>${escapeHtml(d.name)}${badge}</span><span class="meta">${escapeHtml(meta)}</span></li>`;
   }).join('');
   document.getElementById('mbTop5').innerHTML = fmt(lb.top5, 1);
   document.getElementById('mbTop10').innerHTML = fmt(lb.top10, 6);
@@ -1436,7 +1514,13 @@ function renderBallotCanvas(){
 
   let y = 470;
   if(lb.top5.length){
-    y = drawSection(y, '◆ TOP 5', '#ff2bd6', lb.top5, 1, '#ff2bd6', '33');
+    // Draw #1 "MUST SEE" as a gold special row, then remaining top5 below
+    const mustSee = lb.top5.slice(0, 1);
+    const restTop5 = lb.top5.slice(1);
+    y = drawSection(y, '★ MUST SEE', '#ffd04b', mustSee, 1, '#ffd04b', '44');
+    if(restTop5.length){
+      y = drawSection(y-20, '◆ TOP 5', '#ff2bd6', restTop5, 2, '#ff2bd6', '33');
+    }
   }
   if(lb.top10.length){
     y = drawSection(y+10, '◇ RANKS 6–10', '#00e5ff', lb.top10, 6, '#00e5ff', '22');
@@ -1495,7 +1579,7 @@ document.getElementById('resetBtn').addEventListener('click', e=>{
   if(!confirm('Reset the entire market? All ballots will be cleared.')) return;
   localStorage.removeItem(STORAGE_KEY);
   state = loadState();
-  filterDay='ALL'; filterStage='ALL';
+  filterDay='ALL'; filterStage='ALL'; filterGenre='ALL';
   renderAll();
 });
 
@@ -1522,6 +1606,13 @@ setInterval(renderCountdown, 30*1000);
    ===================================================================== */
 
 function recomputeFromRemote(){
+  // Snapshot pre-update pct per DJ so we can flash rows that moved meaningfully.
+  // Use GLOBAL pct (not filter-scoped) so flashes always represent a real market
+  // move, not a filter artifact.
+  const prevTotal = state.djs.reduce((a,d)=>a+d.points,0) || 1;
+  const prevPct = {};
+  state.djs.forEach(d => { prevPct[d.id] = (d.points/prevTotal)*100; });
+
   // reset points
   state.djs.forEach(d => { d.points = 0; });
   const byId = {}; state.djs.forEach(d => byId[d.id] = d);
@@ -1542,6 +1633,26 @@ function recomputeFromRemote(){
   snapshotHistory();
   saveState();
   renderAll();
+
+  // Flash rows whose pct moved by >0.5pp. We do this AFTER renderAll so the
+  // grid cards + leaderboard rows exist in the DOM to tag. Flash class is
+  // removed after the animation so re-firing the flash on the next update
+  // actually retriggers the keyframes.
+  const newTotal = state.djs.reduce((a,d)=>a+d.points,0) || 1;
+  state.djs.forEach(d => {
+    const newP = (d.points/newTotal)*100;
+    const delta = newP - (prevPct[d.id] || 0);
+    if(Math.abs(delta) > 0.5){
+      const cls = delta > 0 ? 'flash-up' : 'flash-down';
+      document.querySelectorAll(`[data-id="${d.id}"]`).forEach(el => {
+        el.classList.remove('flash-up','flash-down');
+        // force reflow so the animation restarts if the same class was applied recently
+        void el.offsetWidth;
+        el.classList.add(cls);
+        setTimeout(() => el.classList.remove(cls), 1300);
+      });
+    }
+  });
 }
 
 async function fetchAllBallots(){
@@ -1708,7 +1819,7 @@ _newResetBtn.addEventListener('click', async e=>{
   } else if(choice === 'clear'){
     localStorage.removeItem(STORAGE_KEY);
     state = loadState();
-    filterDay='ALL'; filterStage='ALL';
+    filterDay='ALL'; filterStage='ALL'; filterGenre='ALL';
     renderAll();
   }
 });
