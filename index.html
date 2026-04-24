@@ -4,6 +4,26 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>EDC LV 2026 · Hype Market (Live)</title>
+<meta name="description" content="Vote your top 10 most-anticipated DJ sets for EDC Las Vegas 2026. Live, realtime prediction market — watch the leaderboard move as friends cast ballots." />
+<meta name="theme-color" content="#ff2bd6" />
+
+<!-- Open Graph (Reddit, Facebook, iMessage, Slack, Discord link previews) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="EDC LV 2026 · Hype Market" />
+<meta property="og:title" content="EDC LV 2026 · Hype Market" />
+<meta property="og:description" content="Rank your top 10 most-anticipated sets. Watch the leaderboard tick live. MUST SEE goes on #1." />
+<meta property="og:url" content="https://edc-hype.vercel.app/" />
+<meta property="og:image" content="https://edc-hype.vercel.app/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="EDC LV 2026 Hype Market — live prediction market for the lineup" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="EDC LV 2026 · Hype Market" />
+<meta name="twitter:description" content="Rank your top 10 most-anticipated sets. Watch the leaderboard tick live." />
+<meta name="twitter:image" content="https://edc-hype.vercel.app/og-image.png" />
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
   :root{
@@ -308,6 +328,19 @@
   .mover .mr{font-weight:800; font-variant-numeric:tabular-nums}
   .mover.up .mr{color:var(--gain)} .mover.down .mr{color:var(--loss)}
 
+  /* recent voters */
+  .voters-list{display:flex; flex-direction:column; gap:6px; max-height:340px; overflow:auto; padding-right:2px;}
+  .voter-row{display:flex; align-items:center; justify-content:space-between;
+    gap:10px; padding:8px 10px; border-radius:8px;
+    background:rgba(0,0,0,0.25); border:1px solid var(--border); font-size:12px;}
+  .voter-row .handle{font-weight:800; color:var(--neon2); letter-spacing:0.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .voter-row .vmeta{font-size:10px; color:var(--ink2); letter-spacing:1px; font-variant-numeric:tabular-nums;}
+  .voter-row.me{border-color:var(--gain); background:rgba(54,255,139,0.08);}
+  .voter-row.me .handle{color:var(--gain)}
+  .voter-row.me::before{content:'YOU'; font-size:8px; font-weight:900; color:#000;
+    background:var(--gain); padding:2px 5px; border-radius:3px; letter-spacing:1px; margin-right:4px;}
+  .voters-empty{color:var(--ink2); font-size:12px; padding:10px 2px;}
+
   /* my ballot view */
   .mb-preview{background:#0a0520; border:1px solid var(--neon); border-radius:16px;
     padding:20px; margin-top:10px; box-shadow:0 0 40px rgba(255,43,214,0.3)}
@@ -410,6 +443,10 @@
     <div class="panel">
       <div class="section-title" style="margin-top:0"><h2>▲ TOP MOVERS</h2></div>
       <div class="movers" id="movers"></div>
+    </div>
+    <div class="panel">
+      <div class="section-title" style="margin-top:0"><h2>◉ RECENT VOTERS</h2></div>
+      <div class="voters-list" id="votersList"></div>
     </div>
     <div class="panel">
       <div class="section-title" style="margin-top:0"><h2>♦ HOW IT WORKS</h2></div>
@@ -1775,7 +1812,7 @@ function recomputeFromRemote(){
 
 async function fetchAllBallots(){
   const [{ data: balls, error: be }, { data: profs, error: pe }] = await Promise.all([
-    sb.from('edc_ballots').select('user_id, top5, top10'),
+    sb.from('edc_ballots').select('user_id, top5, top10, updated_at').order('updated_at', { ascending: false }),
     sb.from('edc_profiles').select('id, handle'),
   ]);
   if(be) console.warn('ballots fetch', be);
@@ -1784,6 +1821,7 @@ async function fetchAllBallots(){
   remoteProfiles = {};
   (profs || []).forEach(p => { remoteProfiles[p.id] = p.handle; });
   updateVotersChip();
+  renderVoters();
   recomputeFromRemote();
 }
 
@@ -1795,6 +1833,45 @@ function updateVotersChip(){
   el.innerHTML = `<b>${count}</b> LIVE BALLOT${count===1?'':'S'}` + (names ? `<span style="opacity:.65"> · ${names}</span>` : '');
 }
 
+function relativeTime(iso){
+  if(!iso) return '';
+  const t = typeof iso === 'number' ? iso : Date.parse(iso);
+  if(isNaN(t)) return '';
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if(s < 10) return 'just now';
+  if(s < 60) return Math.floor(s) + 's ago';
+  if(s < 3600) return Math.floor(s/60) + 'm ago';
+  if(s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+function renderVoters(){
+  const el = document.getElementById('votersList');
+  if(!el) return;
+  if(!remoteBallots.length){
+    el.innerHTML = '<div class="voters-empty">No ballots yet — be the first to cast one.</div>';
+    return;
+  }
+  // Most recent 20 by updated_at (desc)
+  const sorted = [...remoteBallots].sort((a,b) => {
+    const ta = a.updated_at ? Date.parse(a.updated_at) : 0;
+    const tb = b.updated_at ? Date.parse(b.updated_at) : 0;
+    return tb - ta;
+  }).slice(0, 20);
+  el.innerHTML = sorted.map(b => {
+    const handle = remoteProfiles[b.user_id] || 'anonymous';
+    const isMe = me && b.user_id === me.id;
+    const picks = (b.top5||[]).length + (b.top10||[]).length;
+    return `<div class="voter-row${isMe?' me':''}">
+      <span class="handle">@${escapeHtml(handle)}</span>
+      <span class="vmeta">${picks} PICKS · ${relativeTime(b.updated_at)}</span>
+    </div>`;
+  }).join('');
+}
+
+// Keep "Xm ago" labels fresh without re-fetching — recompute every 30s.
+setInterval(() => renderVoters(), 30*1000);
+
 function subscribeRealtime(){
   sb.channel('market')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'edc_ballots' }, payload => {
@@ -1804,16 +1881,23 @@ function subscribeRealtime(){
         remoteBallots = remoteBallots.filter(b => b.user_id !== row.user_id);
       } else {
         const i = remoteBallots.findIndex(b => b.user_id === row.user_id);
-        const entry = { user_id: row.user_id, top5: row.top5 || [], top10: row.top10 || [] };
+        const entry = {
+          user_id: row.user_id,
+          top5: row.top5 || [],
+          top10: row.top10 || [],
+          updated_at: row.updated_at || new Date().toISOString(),
+        };
         if(i >= 0) remoteBallots[i] = entry; else remoteBallots.push(entry);
       }
       updateVotersChip();
+      renderVoters();
       recomputeFromRemote();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'edc_profiles' }, payload => {
       const row = payload.new; if(!row) return;
       remoteProfiles[row.id] = row.handle;
       updateVotersChip();
+      renderVoters();
     })
     .subscribe();
 }
@@ -1838,6 +1922,7 @@ async function setHandle(handle){
   const badge = document.getElementById('meBadge');
   if(badge) badge.textContent = '@' + handle;
   updateVotersChip();
+  renderVoters();
   return true;
 }
 
@@ -1915,10 +2000,11 @@ _newSubmitBtn.addEventListener('click', async ()=>{
   closeBallot();
   fireConfetti();
   // realtime will fire and recompute; still eagerly update local to feel instant:
-  const entry = { user_id: me.id, top5:[...ballot.top5], top10:[...ballot.top10] };
+  const entry = { user_id: me.id, top5:[...ballot.top5], top10:[...ballot.top10], updated_at: new Date().toISOString() };
   const i = remoteBallots.findIndex(b => b.user_id === me.id);
   if(i >= 0) remoteBallots[i] = entry; else remoteBallots.push(entry);
   updateVotersChip();
+  renderVoters();
   recomputeFromRemote();
   setTimeout(()=> openMyBallot(), 650);
 });
