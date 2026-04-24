@@ -1200,7 +1200,21 @@ function renderBallot(){
   const q = (document.getElementById('djSearch').value||'').toLowerCase();
   const used = new Set([...ballot.top5, ...ballot.top10]);
   const chips = document.getElementById('djChips');
-  const byPop = (a,b)=> (pctOf(b)-pctOf(a)) || a.name.localeCompare(b.name);
+  // Ballot pool sort: always GLOBAL popularity (ignore any filter scope on the
+  // main grid), with a "how many ballots picked this DJ at any rank" tiebreaker
+  // so artists who got picked at rank 8 still float above artists picked by
+  // nobody. Alpha is the final tiebreaker.
+  const appearances = {};
+  (typeof remoteBallots !== 'undefined' ? remoteBallots : []).forEach(b => {
+    (b.top5 ||[]).forEach(id => { appearances[id] = (appearances[id]||0) + 1; });
+    (b.top10||[]).forEach(id => { appearances[id] = (appearances[id]||0) + 1; });
+  });
+  const byPop = (a,b) => {
+    if(b.points !== a.points) return b.points - a.points;
+    const ba = appearances[b.id] || 0, aa = appearances[a.id] || 0;
+    if(ba !== aa) return ba - aa;
+    return a.name.localeCompare(b.name);
+  };
   chips.innerHTML = state.djs
     .filter(d=> !used.has(d.id))
     .filter(d=> !q || d.name.toLowerCase().includes(q) || (d.genre||'').toLowerCase().includes(q) || (d.stage||'').toLowerCase().includes(q))
